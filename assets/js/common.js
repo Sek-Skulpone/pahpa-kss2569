@@ -16,9 +16,13 @@ export const DELIVERY_LABEL = { school: "รับที่ รร. โคกส
 
 // ---------- settings ----------
 export async function loadSettings() {
+  fillEventText(DEFAULT_SETTINGS); // แสดงค่าเริ่มต้นทันที ไม่ต้องรอฐานข้อมูล
   if (!isConfigured) return { ...DEFAULT_SETTINGS };
   try {
-    const snap = await getDoc(doc(db, "settings", "public"));
+    const snap = await Promise.race([
+      getDoc(doc(db, "settings", "public")),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 6000)),
+    ]);
     return { ...DEFAULT_SETTINGS, ...(snap.exists() ? snap.data() : {}) };
   } catch (e) {
     console.warn("loadSettings", e);

@@ -2,15 +2,17 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./config.js";
 
 export const isConfigured = !String(firebaseConfig.apiKey).startsWith("YOUR_");
 
 export const app = isConfigured ? initializeApp(firebaseConfig) : null;
 
-// เก็บข้อมูลไว้ในเครื่อง ลดจำนวนการอ่านจากฐานข้อมูล (โควตาฟรี 50,000 ครั้ง/วัน)
+// หน้าแอดมิน: เก็บข้อมูลไว้ในเครื่อง ลดการอ่านฐานข้อมูล (โควตาฟรี 50,000 ครั้ง/วัน)
+// หน้าสาธารณะ: ไม่ใช้ที่เก็บในเครื่องเลย เพื่อให้โหลดได้เสมอ
+const isAdminPage = /staff-/.test(location.pathname);
 function makeDb() {
+  if (!isAdminPage) return initializeFirestore(app, { localCache: memoryLocalCache() });
   try {
     return initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
   } catch {
@@ -18,6 +20,5 @@ function makeDb() {
   }
 }
 export const db = app ? makeDb() : null;
-export const auth = app ? getAuth(app) : null;
 
 export * from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";

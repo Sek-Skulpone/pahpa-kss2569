@@ -1,9 +1,9 @@
 import {
-  db, auth, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
+  app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
 } from "./firebase.js";
 import {
-  GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText,
@@ -13,6 +13,7 @@ import { renderThanksCard, downloadCanvas } from "./thanks-card.js";
 import { renderLedger } from "./ledger.js";
 
 setupBanner();
+const auth = app ? getAuth(app) : null;
 
 let settings = { ...DEFAULT_SETTINGS };
 let orders = [];
