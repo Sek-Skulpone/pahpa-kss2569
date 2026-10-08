@@ -57,9 +57,9 @@ export const DEFAULT_SETTINGS = {
   openDonate: true,
 
   contactShirt: "ครูนิโลบล คำลือชัย",
-  contactShirtPhone: "",
+  contactShirtPhone: "0933249264",
   contactTicket: "ครูเพชรรัตน์ ประสานเชื้อ",
-  contactTicketPhone: "",
+  contactTicketPhone: "0844059871",
   contactInfo: "รองนงลักษณ์ ชาญนรา",
   contactInfoPhone: "",
 };

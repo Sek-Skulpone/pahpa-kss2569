@@ -50,7 +50,7 @@ function rows() {
     .filter((o) => o.type === "donation" && o.status !== "rejected")
     .filter((o) => (opt.scope === "paid" ? ctx.isPaid(o) : true))
     .filter((o) => (opt.notInBook ? !o.inBook : true))
-    .filter((o) => !q || [o.fullName, o.position, o.workplace, o.code].join(" ").toLowerCase().includes(q))
+    .filter((o) => !q || [o.fullName, o.position, o.workplace, o.code, o.phone].join(" ").toLowerCase().includes(q))
     .sort((a, b) => (a.createdAt?.toMillis?.() ?? 9e15) - (b.createdAt?.toMillis?.() ?? 9e15));
 }
 
@@ -61,7 +61,7 @@ export function renderLedger(box, context) {
     box.dataset.ready = "1";
     box.innerHTML = `
       <div class="toolbar">
-        <input id="lg-q" type="search" placeholder="ค้นหาชื่อ / หน่วยงาน">
+        <input id="lg-q" type="search" placeholder="ค้นหาชื่อ / หน่วยงาน / เบอร์โทร">
         <select id="lg-scope">
           <option value="paid">เฉพาะที่ตรวจสลิปแล้ว</option>
           <option value="all">ทั้งหมด (รวมรอตรวจ)</option>
@@ -99,6 +99,7 @@ function draw() {
       <td class="c">${i + 1}</td>
       <td class="nowrap">${fmtDate(o.createdAt)}</td>
       <td><div class="nm">${escapeHtml(o.fullName)}</div>${subtitle(o) ? `<div class="sub">${escapeHtml(subtitle(o))}</div>` : ""}
+        ${o.phone ? `<div class="sub">📞 <a href="tel:${escapeHtml(o.phone)}">${escapeHtml(o.phone)}</a></div>` : ""}
         ${o.status === "pending" ? '<span class="chip pending">รอตรวจ</span>' : ""}</td>
       <td class="r">${baht(amt)}</td>
       <td class="r muted">${baht(running)}</td>
@@ -107,7 +108,7 @@ function draw() {
     </tr>`;
   }).join("");
   $("#lg-table").innerHTML = `
-    <thead><tr><th class="c">ที่</th><th>วันที่</th><th>ชื่อ - สกุล / หน่วยงาน</th><th class="r">จำนวนเงิน</th><th class="r">ยอดสะสม</th><th class="c">ช่องทาง</th><th class="c">ลงสมุด</th></tr></thead>
+    <thead><tr><th class="c">ที่</th><th>วันที่</th><th>ชื่อ - สกุล / หน่วยงาน / โทร</th><th class="r">จำนวนเงิน</th><th class="r">ยอดสะสม</th><th class="c">ช่องทาง</th><th class="c">ลงสมุด</th></tr></thead>
     <tbody>${body || `<tr><td colspan="7" class="c muted" style="padding:24px">ยังไม่มีรายการ</td></tr>`}</tbody>`;
   $$(".inbook", $("#lg-table")).forEach((cb) => (cb.onchange = () => {
     updateDoc(doc(db, "orders", cb.dataset.id), { inBook: cb.checked }).catch((e) => toast("บันทึกไม่สำเร็จ: " + e.message, "err"));
@@ -139,14 +140,14 @@ function exportCsv() {
   const list = rows();
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   let running = 0;
-  const lines = [["ที่", "วันที่", "รหัส", "คำนำหน้า", "ชื่อ", "สกุล", "ตำแหน่ง", "หน่วยงาน", "จำนวนเงิน", "ยอดสะสม", "ช่องทาง", "สถานะ", "ลงสมุด", "หมายเหตุ"].map(esc).join(",")];
+  const lines = [["ที่", "วันที่", "รหัส", "คำนำหน้า", "ชื่อ", "สกุล", "ตำแหน่ง", "หน่วยงาน", "โทร", "จำนวนเงิน", "ยอดสะสม", "ช่องทาง", "สถานะ", "ลงสมุด", "หมายเหตุ"].map(esc).join(",")];
   list.forEach((o, i) => {
     const amt = Number(o.amount ?? o.total) || 0;
     running += amt;
-    lines.push([i + 1, fmtDate(o.createdAt), o.code, o.prefix, o.firstName || o.fullName, o.lastName, o.position, o.workplace, amt, running,
+    lines.push([i + 1, fmtDate(o.createdAt), o.code, o.prefix, o.firstName || o.fullName, o.lastName, o.position, o.workplace, o.phone, amt, running,
       channel(o), STATUS_LABEL[o.status], o.inBook ? "✓" : "", o.note].map(esc).join(","));
   });
-  lines.push(["", "", "", "", "รวม", "", "", "", running, "", bahtText(running)].map(esc).join(","));
+  lines.push(["", "", "", "", "รวม", "", "", "", "", running, "", bahtText(running)].map(esc).join(","));
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" }));
   a.download = `บัญชีรายนามผู้ร่วมทำบุญ-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -161,7 +162,7 @@ function printLedger() {
     const amt = Number(o.amount ?? o.total) || 0;
     running += amt;
     return `<tr><td class="c">${i + 1}</td><td>${fmtDate(o.createdAt)}</td><td>${escapeHtml(o.fullName)}</td>
-      <td>${escapeHtml(subtitle(o))}</td><td class="r">${baht(amt)}</td><td class="c">${escapeHtml(channel(o))}</td></tr>`;
+      <td>${escapeHtml(subtitle(o))}</td><td class="nowrap">${escapeHtml(o.phone || "")}</td><td class="r">${baht(amt)}</td><td class="c">${escapeHtml(channel(o))}</td></tr>`;
   }).join("");
   const w = window.open("", "_blank");
   if (!w) return toast("เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต pop-up", "err");
@@ -174,15 +175,15 @@ function printLedger() {
       table{width:100%;border-collapse:collapse}
       th,td{border:1px solid #555;padding:5px 6px;vertical-align:top}
       th{background:#eee}
-      .c{text-align:center}.r{text-align:right;white-space:nowrap}
+      .c{text-align:center}.r{text-align:right;white-space:nowrap}.nowrap{white-space:nowrap}
       tfoot td{font-weight:700}
       @page{size:A4;margin:14mm}
     </style></head><body>
     <h1>บัญชีรายนามผู้ร่วมทำบุญ ${escapeHtml(s.eventTitle || "")}</h1>
     <div class="sub">${escapeHtml(s.eventSubtitle || "")}<br>${escapeHtml(s.eventDate || "")} · ${escapeHtml(s.schoolName || "")}</div>
-    <table><thead><tr><th>ที่</th><th>วันที่</th><th>ชื่อ - สกุล</th><th>ตำแหน่ง / หน่วยงาน</th><th>จำนวนเงิน (บาท)</th><th>ช่องทาง</th></tr></thead>
+    <table><thead><tr><th>ที่</th><th>วันที่</th><th>ชื่อ - สกุล</th><th>ตำแหน่ง / หน่วยงาน</th><th>โทร</th><th>จำนวนเงิน (บาท)</th><th>ช่องทาง</th></tr></thead>
     <tbody>${trs}</tbody>
-    <tfoot><tr><td colspan="4" class="r">รวม ${list.length} ราย (${bahtText(running)})</td><td class="r">${baht(running)}</td><td></td></tr></tfoot></table>
+    <tfoot><tr><td colspan="5" class="r">รวม ${list.length} ราย (${bahtText(running)})</td><td class="r">${baht(running)}</td><td></td></tr></tfoot></table>
     <p style="margin-top:12px;font-size:12px">พิมพ์เมื่อ ${new Date().toLocaleString("th-TH")}</p>
     <script>document.fonts.ready.then(()=>setTimeout(()=>print(),300))<\/script></body></html>`);
   w.document.close();
@@ -202,6 +203,7 @@ function openAddForm() {
       <div><label for="ma-position">ตำแหน่ง</label><input id="ma-position" type="text"></div>
       <div><label for="ma-workplace">หน่วยงาน</label><input id="ma-workplace" type="text"></div>
     </div>
+    <label for="ma-phone">เบอร์โทร <span class="opt">(ไม่บังคับ)</span></label><input id="ma-phone" type="tel" inputmode="tel">
     <div class="row">
       <div><label for="ma-amount">จำนวนเงิน (บาท)</label><input id="ma-amount" type="number" inputmode="decimal" min="1"></div>
       <div><label for="ma-method">ช่องทาง</label><select id="ma-method"><option>เงินสด</option><option>โอนเงิน</option><option>เช็ค</option><option>อื่นๆ</option></select></div>
@@ -230,7 +232,7 @@ async function saveManual() {
     prefix, firstName: first, lastName: last,
     fullName: first || last ? `${prefix === "อื่นๆ" ? "" : prefix}${first} ${last}`.trim() : "ผู้ไม่ประสงค์ออกนาม",
     position: $("#ma-position").value.trim(), workplace: $("#ma-workplace").value.trim(),
-    phone: "", address: "", delivery: null, note: $("#ma-note").value.trim(),
+    phone: $("#ma-phone").value.trim(), address: "", delivery: null, note: $("#ma-note").value.trim(),
     amount, subtotal: amount, shipping: 0, total: amount,
     showName: $("#ma-show").checked && !!(first || last), allowPublish: false,
     hasSlip: false, hasPhoto: false, slipRef: "", slipRaw: "",
