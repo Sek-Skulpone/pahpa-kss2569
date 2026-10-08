@@ -190,7 +190,7 @@ export async function notifyLine(o) {
     orderSummaryText(o),
     o.delivery ? `รับ: ${DELIVERY_LABEL[o.delivery]}` : "",
     `ยอดเงิน: ${baht(o.total)} บาท`,
-    `ตรวจสอบ: ${location.origin}${location.pathname.replace(/[^/]*$/, "")}admin.html`,
+    `ตรวจสอบ: ${location.origin}${location.pathname.replace(/[^/]*$/, "")}staff-49aacfdc.html`,
   ].filter(Boolean).join("\n");
   await fetch(LINE_NOTIFY_URL, {
     method: "POST",
