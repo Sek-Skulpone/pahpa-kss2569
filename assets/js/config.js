@@ -48,8 +48,8 @@ export const DEFAULT_SETTINGS = {
   shirtPrice: 300,
   shirtShipping: 0,        // ค่าส่งไปรษณีย์ต่อออเดอร์เสื้อ (บาท)
   ticketPrice: 100,        // บัตรรำวงใบละ
-  ticketBookPrice: 2000,   // บัตรรำวงเล่มละ
-  ticketBookSize: 20,      // จำนวนบัตรต่อเล่ม
+  ticketBookPrice: 1000,   // บัตรรำวงเล่มละ
+  ticketBookSize: 10,      // จำนวนบัตรต่อเล่ม
   ticketShipping: 0,       // ค่าส่งไปรษณีย์ต่อออเดอร์บัตร (บาท)
 
   openShirt: true,
