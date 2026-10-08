@@ -26,7 +26,7 @@ const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return nu
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
 const keyFromHash = new URLSearchParams(location.hash.slice(1)).get("k");
 if (keyFromHash) lsSet("staffKey", keyFromHash);
-const staffKey = keyFromHash || lsGet("staffKey");
+let staffKey = keyFromHash || lsGet("staffKey");
 
 function showLogin(msg) {
   unsub?.();
@@ -43,7 +43,7 @@ if (!isConfigured) {
     if (!user) {
       if (staffKey) {
         signInAnonymously(auth).catch((e) => showLogin("เชื่อมต่อไม่สำเร็จ: " + e.code));
-      } else showLogin();
+      } else if ($("#login-err").hidden) showLogin();
       return;
     }
     if (user.isAnonymous) {
@@ -52,6 +52,7 @@ if (!isConfigured) {
         if (!(await getDoc(ref)).exists()) await setDoc(ref, { key: staffKey || "", createdAt: serverTimestamp() });
       } catch (e) {
         lsSet("staffKey", null);
+        staffKey = null;
         await signOut(auth);
         showLogin("ลิงก์เจ้าหน้าที่ไม่ถูกต้อง หรือถูกยกเลิกแล้ว");
         return;
@@ -103,6 +104,7 @@ async function startApp(user) {
       $("#app").hidden = true;
       $("#login").hidden = false;
       lsSet("staffKey", null);
+      staffKey = null;
       loginError({ message: e.code === "permission-denied" ? "ไม่มีสิทธิ์เข้าถึงข้อมูล กรุณาใช้ลิงก์สำหรับเจ้าหน้าที่" : e.message });
       signOut(auth);
     },
