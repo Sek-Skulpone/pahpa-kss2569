@@ -1,8 +1,8 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, setupFilePreview, toast,
-} from "./common.js";
-import { NAME_PREFIXES, PAYMENT_QR, BANK_APPS } from "./config.js";
+} from "./common.js?v=11";
+import { NAME_PREFIXES, PAYMENT_QR, BANK_APPS } from "./config.js?v=11";
 
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },

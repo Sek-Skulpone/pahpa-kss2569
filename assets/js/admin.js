@@ -1,16 +1,16 @@
 import {
   app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
-} from "./firebase.js";
+} from "./firebase.js?v=11";
 import {
   initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText,
-} from "./common.js";
-import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js";
-import { renderThanksCard, downloadCanvas } from "./thanks-card.js";
-import { renderLedger } from "./ledger.js";
+} from "./common.js?v=11";
+import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=11";
+import { renderThanksCard, downloadCanvas } from "./thanks-card.js?v=11";
+import { renderLedger } from "./ledger.js?v=11";
 
 setupBanner();
 // เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)
