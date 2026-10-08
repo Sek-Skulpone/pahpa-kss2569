@@ -47,17 +47,9 @@ if (!isConfigured) {
       } else if ($("#login-err").hidden) showLogin();
       return;
     }
-    if (user.isAnonymous) {
-      try {
-        const ref = doc(db, "staffDevices", user.uid);
-        if (!(await getDoc(ref)).exists()) await setDoc(ref, { key: staffKey || "", createdAt: serverTimestamp() });
-      } catch (e) {
-        lsSet("staffKey", null);
-        staffKey = null;
-        await signOut(auth);
-        showLogin("ลิงก์เจ้าหน้าที่ไม่ถูกต้อง หรือถูกยกเลิกแล้ว");
-        return;
-      }
+    if (user.isAnonymous && staffKey) {
+      // ลงทะเบียนเครื่องนี้ด้วยคีย์ (ถ้าเคยลงทะเบียนแล้วจะไม่ผ่าน ซึ่งไม่เป็นไร — สิทธิ์จริงตรวจตอนโหลดข้อมูล)
+      await setDoc(doc(db, "staffDevices", user.uid), { key: staffKey, createdAt: serverTimestamp() }).catch(() => {});
     }
     startApp(user);
   });
@@ -106,7 +98,7 @@ async function startApp(user) {
       $("#login").hidden = false;
       lsSet("staffKey", null);
       staffKey = null;
-      loginError({ message: e.code === "permission-denied" ? "ไม่มีสิทธิ์เข้าถึงข้อมูล กรุณาใช้ลิงก์สำหรับเจ้าหน้าที่" : e.message });
+      loginError({ message: e.code === "permission-denied" ? "ลิงก์เจ้าหน้าที่ไม่ถูกต้อง หรือถูกยกเลิกแล้ว" : e.message });
       signOut(auth);
     },
   );
