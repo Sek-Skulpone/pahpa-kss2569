@@ -3,7 +3,7 @@ import {
   serverTimestamp,
 } from "./firebase.js";
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
+  initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText,
@@ -13,7 +13,21 @@ import { renderThanksCard, downloadCanvas } from "./thanks-card.js";
 import { renderLedger } from "./ledger.js";
 
 setupBanner();
-const auth = app ? getAuth(app) : null;
+// เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)
+const auth = app ? initializeAuth(app, { persistence: [browserLocalPersistence, inMemoryPersistence], popupRedirectResolver: browserPopupRedirectResolver }) : null;
+
+// ถ้าโหลดไม่ขึ้นภายใน 10 วินาที แสดงทางแก้
+setTimeout(() => {
+  if (!firstLoad || !$("#login").hidden) return;
+  const box = document.createElement("div");
+  box.className = "container";
+  box.innerHTML = `<div class="card" style="text-align:center">
+    <h2>โหลดข้อมูลช้าผิดปกติ</h2>
+    <p>อาจเกิดจากเบราว์เซอร์ค้าง ลองกดปุ่มด้านล่าง หรือปิด Chrome ทุกหน้าต่างแล้วเปิดใหม่</p>
+    <button class="btn btn-primary" id="btn-nocache">🔄 เปิดแบบโหมดสำรอง</button></div>`;
+  document.body.append(box);
+  $("#btn-nocache").onclick = () => { try { localStorage.setItem("noCache", "1"); } catch {} location.reload(); };
+}, 10000);
 
 let settings = { ...DEFAULT_SETTINGS };
 let orders = [];
