@@ -84,6 +84,7 @@
     import { SHIRT_SIZES } from "./assets/js/config.js";
 
     const qty = {};
+    const setters = {};
     const total = () => Object.values(qty).reduce((a, b) => a + b, 0);
 
     initOrderPage({
@@ -117,6 +118,7 @@
             $("#qty-bar").textContent = total();
             refresh();
           };
+          setters[cell.dataset.size] = set;
           $(".minus", cell).onclick = () => set(+input.value - 1);
           $(".plus", cell).onclick = () => set(+input.value + 1);
           input.oninput = () => set(input.value);
@@ -125,6 +127,8 @@
         const ship = Number(s.shirtShipping || 0);
         $("#ship-note").textContent = ship ? `ค่าส่ง ${baht(ship)} บาท` : "";
       },
+      getState: () => ({ ...qty }),
+      setState: (st) => Object.entries(st).forEach(([k, v]) => setters[k]?.(v)),
       calc(s) {
         const lines = SHIRT_SIZES.filter((z) => qty[z.size]).map((z) => [`ไซส์ ${z.size} × ${qty[z.size]} ตัว`, qty[z.size] * s.shirtPrice]);
         const subtotal = total() * s.shirtPrice;

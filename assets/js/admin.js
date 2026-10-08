@@ -423,6 +423,11 @@ function renderSettings() {
   box.dataset.ready = "1";
   box.innerHTML = `
     <div class="card">
+      <h2>QR Code ป้ายประชาสัมพันธ์</h2>
+      <p class="hint">QR แยก 3 ระบบ: สั่งเสื้อ / จองบัตรรำวง / ร่วมทำบุญ</p>
+      <a class="btn btn-outline btn-sm" href="posters.html" target="_blank">🖨️ เปิดหน้า QR สำหรับพิมพ์</a>
+    </div>
+    <div class="card">
       <h2>เปิด/ปิดรับรายการ</h2>
       <label class="switch"><input type="checkbox" id="s-openShirt"> เปิดรับสั่งจองเสื้อ</label>
       <label class="switch"><input type="checkbox" id="s-openTicket"> เปิดรับจองบัตรรำวง</label>

@@ -4,12 +4,12 @@
 
 // 1) ค่าจาก Firebase Console > Project settings > Your apps > Web app
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000",
+  apiKey: "AIzaSyCKwgrBYMOVFRMKJaE3sXR6_TqGElWBblo",
+  authDomain: "pahpa-kss2569.firebaseapp.com",
+  projectId: "pahpa-kss2569",
+  storageBucket: "pahpa-kss2569.firebasestorage.app",
+  messagingSenderId: "648298518551",
+  appId: "1:648298518551:web:d36ee2710e77acb025a452",
 };
 
 // 2) URL ของ Google Apps Script (Web app) สำหรับส่งแจ้งเตือนเข้า LINE
@@ -17,6 +17,25 @@ export const firebaseConfig = {
 export const LINE_NOTIFY_URL = "";
 // ต้องตรงกับ SHARED_KEY ใน line/Code.gs
 export const LINE_NOTIFY_KEY = "change-me-kss2569";
+
+// QR รับเงินของแต่ละระบบ (ถ้ามี QR แยกบัญชี ให้วางรูปใน assets/img แล้วแก้ชื่อไฟล์ตรงนี้)
+export const PAYMENT_QR = {
+  shirt: "assets/img/qr-payment.jpg",
+  ticket: "assets/img/qr-payment.jpg",
+  donation: "assets/img/qr-payment.jpg",
+};
+
+// แอปธนาคารสำหรับปุ่ม "จ่ายผ่านแอปธนาคาร"
+// android = package name (เปิดผ่าน intent), ios = URL scheme
+export const BANK_APPS = [
+  { name: "K PLUS", color: "#138f2d", android: "com.kasikorn.retail.mbanking.wap", ios: "kplus://" },
+  { name: "SCB EASY", color: "#4e2e7f", android: "com.scb.phone", ios: "scbeasy://" },
+  { name: "Krungthai NEXT", color: "#1ba5e1", android: "ktbcs.netbank", ios: "ktbnext://" },
+  { name: "Bangkok Bank", color: "#1e4598", android: "com.bbl.mobilebanking", ios: "bbl-mbanking://" },
+  { name: "Krungsri", color: "#fec43b", text: "#5a4500", android: "com.krungsri.kma", ios: "kma://" },
+  { name: "ttb touch", color: "#0050f0", android: "com.TMBTOUCH.PRODUCTION", ios: "ttbtouch://" },
+  { name: "MyMo (ออมสิน)", color: "#eb198d", android: "com.mymo.app", ios: "mymo://" },
+];
 
 // 3) ค่าเริ่มต้น (แอดมินแก้ไขได้ภายหลังที่หน้า admin > ตั้งค่า โดยไม่ต้องแก้โค้ด)
 export const DEFAULT_SETTINGS = {

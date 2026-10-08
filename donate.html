@@ -106,6 +106,8 @@
         $$("#chips button").forEach((b) => (b.onclick = () => { $("#f-amount").value = b.dataset.v; sync(); refresh(); }));
         $("#f-amount").oninput = () => { sync(); refresh(); };
       },
+      getState: () => ({ amount: $("#f-amount").value }),
+      setState: (st) => { $("#f-amount").value = st.amount || ""; $("#f-amount").oninput(); },
       calc() {
         const a = amt();
         return { lines: a > 0 ? [["ร่วมทำบุญ", a]] : [], subtotal: a, error: a > 0 ? "" : "กรุณาระบุจำนวนเงินที่ร่วมทำบุญ" };

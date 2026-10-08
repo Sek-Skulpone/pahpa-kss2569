@@ -100,6 +100,7 @@
     import { $, baht } from "./assets/js/common.js";
 
     let singles = 0, books = 0;
+    const setters = {};
 
     initOrderPage({
       type: "ticket",
@@ -119,6 +120,7 @@
             $("#qty-bar").textContent = singles + books * s.ticketBookSize;
             refresh();
           };
+          setters[inputId] = set;
           $(".minus", cell).onclick = () => set(+input.value - 1);
           $(".plus", cell).onclick = () => set(+input.value + 1);
           input.oninput = () => set(input.value);
@@ -129,6 +131,8 @@
         const ship = Number(s.ticketShipping || 0);
         $("#ship-note").textContent = ship ? `ค่าส่ง ${baht(ship)} บาท` : "";
       },
+      getState: () => ({ singles, books }),
+      setState: (st) => { setters["q-single"](st.singles); setters["q-book"](st.books); },
       calc(s) {
         const lines = [];
         if (singles) lines.push([`บัตรใบ × ${singles} ใบ`, singles * s.ticketPrice]);

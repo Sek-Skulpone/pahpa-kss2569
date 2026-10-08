@@ -226,23 +226,26 @@ export function setupFilePreview(input, preview, onChange) {
   });
 }
 
-/** สร้างส่วน "ชำระเงิน" (QR + ปุ่มบันทึกรูป) */
-export function paymentBlockHtml() {
+/** สร้างส่วน "ชำระเงิน" (ปุ่มจ่ายผ่านแอป + QR สำหรับสแกน) */
+export function paymentBlockHtml(qrSrc) {
   return `
     <div class="qr-box">
-      <img src="assets/img/qr-payment.jpg" alt="QR พร้อมเพย์ สำหรับโอนเงิน" class="qr-img">
       <div class="pay-amount">ยอดที่ต้องชำระ <strong class="js-total">0</strong> บาท</div>
-      <a class="btn btn-outline btn-sm" href="assets/img/qr-payment.jpg" download="QR-ผ้าป่า-kss2569.jpg">⬇️ บันทึกรูป QR</a>
-      <p class="hint">สแกนด้วยแอปธนาคาร หรือบันทึกรูป QR แล้วเลือก "สแกนจากรูปภาพ" ในแอปธนาคาร<br>โอนให้ตรงยอด แล้วแนบสลิปด้านล่าง</p>
+      <button type="button" class="btn btn-gold btn-block btn-lg" id="btn-payapp">📱 จ่ายผ่านแอปธนาคาร</button>
+      <p class="hint" style="margin:6px 0 14px">ระบบจะบันทึกรูป QR และคัดลอกยอดเงินให้ แล้วเปิดแอปธนาคาร<br>จ่ายเสร็จแล้วกลับมาหน้านี้เพื่อยืนยัน</p>
+      <div class="or-line"><span>หรือสแกน QR นี้</span></div>
+      <img src="${qrSrc}" alt="QR พร้อมเพย์ สำหรับโอนเงิน" class="qr-img" id="qr-img">
+      <a class="btn btn-outline btn-sm" href="${qrSrc}" download="QR-ผ้าป่า-kss2569.jpg">⬇️ บันทึกรูป QR</a>
     </div>`;
 }
 
 export function showSuccess(container, { code, title, total, extraHtml = "" }) {
   container.innerHTML = `
     <div class="card success">
-      <div class="success-icon">🙏</div>
-      <h2>${escapeHtml(title)}</h2>
-      <p>ระบบได้รับข้อมูลของท่านแล้ว เจ้าหน้าที่จะตรวจสอบการชำระเงินโดยเร็ว</p>
+      <div class="success-icon">✅</div>
+      <h2>สำเร็จแล้ว!</h2>
+      <p style="font-size:1.1rem;margin:0 0 6px"><strong>${escapeHtml(title)}</strong></p>
+      <p>ระบบบันทึกรายการและสลิปของท่านเรียบร้อยแล้ว 🙏</p>
       <div class="code-box">รหัสรายการ<br><strong>${escapeHtml(code)}</strong></div>
       <p>ยอดเงิน <strong>${baht(total)}</strong> บาท</p>
       ${extraHtml}

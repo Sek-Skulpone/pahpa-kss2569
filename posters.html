@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Code ป้ายประชาสัมพันธ์</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body { padding: 0; }
+    .wrap { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); padding: 20px 16px; max-width: 1100px; margin: 0 auto; }
+    .poster { background: #fff; border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); text-align: center; break-inside: avoid; }
+    .poster .head { background: var(--green); color: #fff; padding: 18px 10px 14px; border-bottom: 6px solid var(--gold); }
+    .poster .t { font: 500 1.6rem Kanit; }
+    .poster .s { color: #f6d76b; font-family: Kanit; }
+    .poster img { width: 82%; margin: 18px auto 6px; }
+    .poster .f { font-family: Kanit; color: var(--green-dark); padding-bottom: 6px; }
+    .poster a { font-size: .75rem; color: var(--muted); display: block; padding-bottom: 14px; word-break: break-all; }
+    .tools { text-align: center; padding: 16px; }
+    @media print { .tools { display: none; } body { background: #fff; } .poster { box-shadow: none; border: 1px solid #ccc; page-break-after: always; } .wrap { display: block; } .poster { max-width: 520px; margin: 0 auto 20px; } }
+  </style>
+</head>
+<body>
+  <div class="tools">
+    <h2>QR Code สำหรับป้ายประชาสัมพันธ์</h2>
+    <p class="hint">กดพิมพ์ (1 ระบบต่อ 1 หน้า) หรือคลิกขวาที่รูป QR เพื่อบันทึกไปใช้ทำป้าย</p>
+    <button class="btn btn-primary" onclick="print()">🖨️ พิมพ์</button>
+  </div>
+  <div class="wrap">
+    <div class="poster">
+      <div class="head"><div class="t">👕 สั่งจองเสื้อผ้าป่า</div><div class="s">ตัวละ 300 บาท</div></div>
+      <img src="poster-qr/qr-shirt.png" alt="QR สั่งจองเสื้อ">
+      <div class="f">สแกนเพื่อสั่งจองเสื้อ</div>
+      <a href="shirt.html">sek-skulpone.github.io/pahpa-kss2569/shirt.html</a>
+    </div>
+    <div class="poster">
+      <div class="head"><div class="t">🎟️ จองบัตรรำวง</div><div class="s">ข้าวเหนียววาไรตี้ · ใบละ 100 บาท</div></div>
+      <img src="poster-qr/qr-ticket.png" alt="QR จองบัตรรำวง">
+      <div class="f">สแกนเพื่อจองบัตรรำวง</div>
+      <a href="ticket.html">sek-skulpone.github.io/pahpa-kss2569/ticket.html</a>
+    </div>
+    <div class="poster">
+      <div class="head"><div class="t">🙏 ร่วมทำบุญออนไลน์</div><div class="s">ผ้าป่าเพื่อการศึกษา โคกสีวิทยาสรรค์</div></div>
+      <img src="poster-qr/qr-donate.png" alt="QR ร่วมทำบุญ">
+      <div class="f">สแกนเพื่อร่วมทำบุญ</div>
+      <a href="donate.html">sek-skulpone.github.io/pahpa-kss2569/donate.html</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -5,7 +5,7 @@ service cloud.firestore {
     // ===== ใส่อีเมลของเจ้าหน้าที่ (แอดมิน) ที่นี่ =====
     function isAdmin() {
       return request.auth != null && request.auth.token.email in [
-        "admin@example.com"
+        "saw.skulpone@gmail.com"
       ];
     }
 

@@ -247,3 +247,34 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 [hidden] { display: none !important; }
+
+/* pay via bank app */
+.btn-lg { padding: 16px 22px; font-size: 1.15rem; }
+.or-line { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .9rem; margin: 6px 0 12px; }
+.or-line::before, .or-line::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.pay-sheet {
+  position: fixed; inset: 0; z-index: 150; background: #0009;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 700px) { .pay-sheet { align-items: center; } .pay-panel { border-radius: 20px !important; } }
+.pay-panel {
+  background: var(--bg); width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; position: relative;
+  border-radius: 20px 20px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+  animation: up .2s ease-out;
+}
+@keyframes up { from { transform: translateY(40px); opacity: 0; } }
+.pay-close { position: absolute; right: 12px; top: 8px; background: none; border: 0; font-size: 2rem; cursor: pointer; color: var(--muted); }
+.pay-steps { display: grid; gap: 10px; margin-bottom: 16px; }
+.pay-step { display: flex; gap: 10px; align-items: flex-start; font-size: .95rem; }
+.pay-step b {
+  flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--green); color: #fff;
+  display: grid; place-items: center; font: 500 .85rem Kanit;
+}
+.pay-amt { font: 500 1.3rem Kanit; color: var(--green); }
+.bank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bank {
+  border: 0; border-radius: 14px; padding: 16px 8px; font: 500 1rem Kanit; cursor: pointer;
+  box-shadow: 0 2px 8px #0002; touch-action: manipulation;
+}
+.bank:active { transform: scale(.97); }
+.spinner.dark { border-color: #0b5d3b33; border-top-color: var(--green); width: 40px; height: 40px; }
