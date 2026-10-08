@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== ใส่อีเมลของเจ้าหน้าที่ (แอดมิน) ที่นี่ =====
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email in [
+        "admin@example.com"
+      ];
+    }
+
+    function s(v, max) { return v is string && v.size() <= max; }
+
+    function validOrder(id) {
+      let d = request.resource.data;
+      return d.code == id
+        && d.status == "pending"
+        && d.type in ["shirt", "ticket", "donation"]
+        && d.createdAt == request.time
+        && s(d.fullName, 200) && d.fullName.size() > 0
+        && s(d.firstName, 100) && s(d.lastName, 100) && s(d.prefix, 30)
+        && s(d.phone, 30) && s(d.address, 1000) && s(d.note, 500)
+        && s(d.slipRef, 100) && s(d.slipRaw, 300)
+        && d.total is number && d.total > 0 && d.total <= 10000000
+        && d.subtotal is number && d.shipping is number
+        && d.hasPhoto is bool
+        && (d.type == "donation" || (d.delivery in ["school", "post"]))
+        && d.keys().size() <= 30;
+    }
+
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{id} {
+      allow create: if validOrder(id);
+      allow read, update, delete: if isAdmin();
+    }
+
+    // สลิปและรูปผู้บริจาค (เก็บเป็นรูปย่อ base64)
+    match /orderFiles/{id} {
+      allow create: if request.resource.data.keys().hasOnly(["slip", "photo", "createdAt"])
+        && request.resource.data.slip is string && request.resource.data.slip.size() < 400000
+        && (!("photo" in request.resource.data) || (request.resource.data.photo is string && request.resource.data.photo.size() < 450000))
+        && !exists(/databases/$(database)/documents/orders/$(id))
+        && existsAfter(/databases/$(database)/documents/orders/$(id));
+      allow read, delete: if isAdmin();
+    }
+
+    // กันการใช้สลิปซ้ำ: เก็บเลขอ้างอิงที่อ่านได้จาก QR บนสลิป
+    match /slipRefs/{ref} {
+      allow get: if true;
+      allow create: if ref.size() <= 100
+        && request.resource.data.keys().hasOnly(["orderId", "createdAt"])
+        && s(request.resource.data.orderId, 40)
+        && !exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId))
+        && existsAfter(/databases/$(database)/documents/orders/$(request.resource.data.orderId));
+      allow list, delete: if isAdmin();
+    }
+
+    // รายนามผู้ร่วมทำบุญที่แสดงต่อสาธารณะ (แอดมินเป็นผู้เพิ่มเมื่อตรวจสลิปแล้ว)
+    match /publicDonors/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

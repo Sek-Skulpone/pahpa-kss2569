@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>จองบัตรรำวง</title>
+  <meta name="theme-color" content="#063d27">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><div class="container">
+    <a href="index.html" class="back" aria-label="กลับ">‹</a>
+    <div class="brand">จองบัตรรำวง<small>รำวงย้อนยุคร่วมสมัย ข้าวเหนียววาไรตี้</small></div>
+  </div></header>
+
+  <main class="container">
+    <div id="closed-msg" class="card" hidden><h2>ปิดรับจองบัตรรำวงแล้ว</h2><p>ขอบคุณทุกท่านที่ร่วมสนับสนุน</p></div>
+
+    <div id="form">
+      <div class="card">
+        <img src="assets/img/band-2.jpg" alt="วงข้าวเหนียววาไรตี้" style="border-radius:12px">
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">1</span>จำนวนบัตร</h2>
+        <div class="size-grid" style="grid-template-columns:1fr 1fr">
+          <div class="size-cell" id="c-single">
+            <div class="sz">บัตรใบ</div>
+            <div class="meas">ใบละ <span data-s="ticketPrice">100</span> บาท</div>
+            <div class="stepper">
+              <button type="button" class="minus" aria-label="ลด">−</button>
+              <input id="q-single" type="number" min="0" value="0" inputmode="numeric" aria-label="จำนวนบัตรใบ">
+              <button type="button" class="plus" aria-label="เพิ่ม">+</button>
+            </div>
+          </div>
+          <div class="size-cell" id="c-book">
+            <div class="sz">บัตรเล่ม</div>
+            <div class="meas">เล่มละ <span data-s="ticketBookPrice">2,000</span> บาท (<span data-s="ticketBookSize">20</span> ใบ)</div>
+            <div class="stepper">
+              <button type="button" class="minus" aria-label="ลด">−</button>
+              <input id="q-book" type="number" min="0" value="0" inputmode="numeric" aria-label="จำนวนบัตรเล่ม">
+              <button type="button" class="plus" aria-label="เพิ่ม">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">2</span>ข้อมูลผู้จอง</h2>
+        <div class="row-3">
+          <div><label for="f-prefix">คำนำหน้า</label><select id="f-prefix"></select></div>
+          <div><label for="f-first">ชื่อ</label><input id="f-first" type="text" autocomplete="given-name"></div>
+          <div><label for="f-last">นามสกุล</label><input id="f-last" type="text" autocomplete="family-name"></div>
+        </div>
+        <label for="f-phone">เบอร์โทรศัพท์</label>
+        <input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" required>
+
+        <h3>ช่องทางการรับบัตร</h3>
+        <div class="choice">
+          <label><input type="radio" name="delivery" value="school"><div>รับที่ รร. โคกสีวิทยาสรรค์</div></label>
+          <label><input type="radio" name="delivery" value="post"><div>จัดส่งทางไปรษณีย์<small id="ship-note"></small></div></label>
+        </div>
+        <div id="address-box" hidden>
+          <label for="f-address">ที่อยู่สำหรับจัดส่ง <span class="opt">(บ้านเลขที่ หมู่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์)</span></label>
+          <textarea id="f-address" autocomplete="street-address"></textarea>
+        </div>
+        <label for="f-note">หมายเหตุ <span class="opt">(ไม่บังคับ)</span></label>
+        <input id="f-note" type="text">
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">3</span>สรุปยอด</h2>
+        <div id="summary"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">4</span>ชำระเงิน</h2>
+        <div id="pay"></div>
+        <h3>แนบสลิปการโอนเงิน</h3>
+        <div class="upload">
+          <input id="slip-input" type="file" accept="image/*">
+          <div class="ph">📎 แตะเพื่อเลือกรูปสลิป</div>
+          <div id="slip-preview" class="preview"></div>
+        </div>
+        <div id="slip-status" class="slip-status"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="bottom-bar"><div class="container">
+    <div class="sum"><small>ยอดรวม (<span id="qty-bar">0</span> ใบ)</small><strong id="total-bar">0</strong> บาท</div>
+    <button id="submit" class="btn btn-primary">ยืนยันการจอง</button>
+  </div></div>
+
+  <script type="module">
+    import { initOrderPage } from "./assets/js/order-form.js";
+    import { $, baht } from "./assets/js/common.js";
+
+    let singles = 0, books = 0;
+
+    initOrderPage({
+      type: "ticket",
+      prefix: "TK",
+      openKey: "openTicket",
+      hasDelivery: true,
+      shippingKey: "ticketShipping",
+      successTitle: "จองบัตรรำวงเรียบร้อย",
+      onReady(s, refresh) {
+        const bind = (cellId, inputId, setter) => {
+          const cell = $("#" + cellId), input = $("#" + inputId);
+          const set = (v) => {
+            v = Math.max(0, Math.min(9999, parseInt(v, 10) || 0));
+            input.value = v;
+            setter(v);
+            cell.classList.toggle("has", v > 0);
+            $("#qty-bar").textContent = singles + books * s.ticketBookSize;
+            refresh();
+          };
+          $(".minus", cell).onclick = () => set(+input.value - 1);
+          $(".plus", cell).onclick = () => set(+input.value + 1);
+          input.oninput = () => set(input.value);
+          input.onfocus = () => input.select();
+        };
+        bind("c-single", "q-single", (v) => (singles = v));
+        bind("c-book", "q-book", (v) => (books = v));
+        const ship = Number(s.ticketShipping || 0);
+        $("#ship-note").textContent = ship ? `ค่าส่ง ${baht(ship)} บาท` : "";
+      },
+      calc(s) {
+        const lines = [];
+        if (singles) lines.push([`บัตรใบ × ${singles} ใบ`, singles * s.ticketPrice]);
+        if (books) lines.push([`บัตรเล่ม × ${books} เล่ม (${books * s.ticketBookSize} ใบ)`, books * s.ticketBookPrice]);
+        const subtotal = singles * s.ticketPrice + books * s.ticketBookPrice;
+        return { lines, subtotal, error: singles || books ? "" : "กรุณาระบุจำนวนบัตร" };
+      },
+      extra(s) {
+        return { singles, books, ticketCount: singles + books * s.ticketBookSize };
+      },
+    });
+  </script>
+</body>
+</html>

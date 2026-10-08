@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ผ้าป่าเพื่อการศึกษา โคกสีวิทยาสรรค์</title>
+  <meta name="description" content="สั่งจองเสื้อ จองบัตรรำวง และร่วมทำบุญออนไลน์ งานผ้าป่าเพื่อการศึกษา ครบรอบ 48 ปี โคกสีวิทยาสรรค์">
+  <meta name="theme-color" content="#063d27">
+  <meta property="og:title" content="ผ้าป่าเพื่อการศึกษา ครบรอบ 48 ปี โคกสีวิทยาสรรค์">
+  <meta property="og:image" content="assets/img/shirt.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">ขอเชิญร่วมทำบุญ</div>
+      <h1 data-s="eventTitle">ผ้าป่าเพื่อการศึกษา</h1>
+      <div class="sub" data-s="eventSubtitle">ครบรอบ 48 ปี ลูกศิษย์หลวงปู่จันดี โคกสีวิทยาสรรค์</div>
+      <div class="date" data-s="eventDate">วันศุกร์ที่ 25 ธันวาคม 2569</div>
+      <div class="purpose">🚌 <span data-s="eventPurpose">สมทบค่างวดรถรับส่งนักเรียน</span></div>
+    </div>
+  </section>
+
+  <main class="container">
+    <nav class="menu">
+      <a class="menu-item" href="donate.html" id="m-donate">
+        <div class="icon">🙏</div>
+        <div><div class="t">ร่วมทำบุญออนไลน์</div><div class="d">บริจาคผ่าน QR พร้อมเพย์</div></div>
+        <div class="arrow">›</div>
+      </a>
+      <a class="menu-item" href="shirt.html" id="m-shirt">
+        <div class="icon">👕</div>
+        <div><div class="t">สั่งจองเสื้อผ้าป่า</div><div class="d">ตัวละ <span data-s="shirtPrice">300</span> บาท</div></div>
+        <div class="arrow">›</div>
+      </a>
+      <a class="menu-item" href="ticket.html" id="m-ticket">
+        <div class="icon">🎟️</div>
+        <div><div class="t">จองบัตรรำวง</div><div class="d">ใบละ <span data-s="ticketPrice">100</span> บาท</div></div>
+        <div class="arrow">›</div>
+      </a>
+    </nav>
+
+    <div class="card">
+      <h2>👕 เสื้อผ้าป่าเพื่อการศึกษา</h2>
+      <img src="assets/img/shirt.jpg" alt="ตัวอย่างเสื้อผ้าป่า" class="zoomable" style="border-radius:12px">
+      <p>เสื้อคอโปโล สีเขียว ตัดเหลืองทอง เนื้อผ้าโพลีเอสเตอร์ (เม็ดข้าวโพด) ใส่สบาย ราคาตัวละ <strong data-s="shirtPrice">300</strong> บาท</p>
+      <a href="shirt.html" class="btn btn-primary btn-block">สั่งจองเสื้อ</a>
+    </div>
+
+    <div class="card">
+      <h2>💃 รำวงย้อนยุคร่วมสมัย “ข้าวเหนียววาไรตี้”</h2>
+      <div class="gallery">
+        <img src="assets/img/band-1.jpg" alt="วงข้าวเหนียววาไรตี้" class="zoomable">
+        <img src="assets/img/band-2.jpg" alt="วงข้าวเหนียววาไรตี้" class="zoomable">
+      </div>
+      <p>บัตรใบละ <strong data-s="ticketPrice">100</strong> บาท หรือเล่มละ <strong data-s="ticketBookPrice">2,000</strong> บาท (<span data-s="ticketBookSize">20</span> ใบ)</p>
+      <a href="ticket.html" class="btn btn-primary btn-block">จองบัตรรำวง</a>
+    </div>
+
+    <div class="card">
+      <h2>📞 ติดต่อสอบถาม</h2>
+      <ul class="contacts">
+        <li><div class="role">สั่งจองเสื้อ</div><span data-s="contactShirt"></span> <a data-tel="contactShirtPhone" hidden></a></li>
+        <li><div class="role">สั่งจองบัตรรำวง</div><span data-s="contactTicket"></span> <a data-tel="contactTicketPhone" hidden></a></li>
+        <li><div class="role">สอบถามรายละเอียดเพิ่มเติม</div><span data-s="contactInfo"></span> <a data-tel="contactInfoPhone" hidden></a></li>
+      </ul>
+    </div>
+
+    <a href="donors.html" class="btn btn-outline btn-block">📜 รายนามผู้ร่วมทำบุญ</a>
+  </main>
+
+  <footer><span data-s="schoolName">โรงเรียนโคกสีวิทยาสรรค์</span> · <a href="admin.html">สำหรับเจ้าหน้าที่</a></footer>
+
+  <script type="module">
+    import { loadSettings, fillEventText, setupBanner, $, $$ } from "./assets/js/common.js";
+    setupBanner();
+    const s = await loadSettings();
+    fillEventText(s);
+    if (!s.openShirt) $("#m-shirt").classList.add("closed");
+    if (!s.openTicket) $("#m-ticket").classList.add("closed");
+    if (!s.openDonate) $("#m-donate").classList.add("closed");
+    $$(".zoomable").forEach((img) => img.addEventListener("click", () => {
+      const lb = document.createElement("div");
+      lb.className = "lightbox";
+      lb.innerHTML = `<img src="${img.src}" alt="">`;
+      lb.onclick = () => lb.remove();
+      document.body.append(lb);
+    }));
+  </script>
+</body>
+</html>

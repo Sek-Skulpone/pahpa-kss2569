@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ระบบหลังบ้าน ผ้าป่า</title>
+  <meta name="theme-color" content="#063d27">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body { padding-bottom: 24px; }
+    .tabs {
+      display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; background: #fff;
+      position: sticky; top: 56px; z-index: 15; box-shadow: 0 2px 8px #0001; scrollbar-width: none;
+    }
+    .tabs button {
+      flex: none; font: 500 .95rem Kanit; padding: 8px 14px; border-radius: 999px; border: 0;
+      background: #eef2ef; color: var(--green-dark); cursor: pointer; position: relative;
+    }
+    .tabs button.on { background: var(--green); color: #fff; }
+    .tabs .badge {
+      background: var(--danger); color: #fff; font-size: .7rem; border-radius: 999px; padding: 0 6px; margin-left: 4px;
+    }
+    .stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); margin: 16px 0; }
+    .stat { background: #fff; border-radius: 14px; padding: 14px; box-shadow: var(--shadow); border-top: 4px solid var(--green); }
+    .stat.gold { border-top-color: var(--gold); }
+    .stat .l { color: var(--muted); font-size: .85rem; }
+    .stat .v { font: 500 1.6rem Kanit; color: var(--green-dark); }
+    .stat .s { font-size: .82rem; color: var(--muted); }
+    .tbl { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    .tbl th, .tbl td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+    .tbl th:first-child, .tbl td:first-child { text-align: left; }
+    .tbl th { color: var(--muted); font-weight: 600; font-size: .85rem; }
+    .tbl tfoot td { font-weight: 700; border-bottom: 0; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 10px; }
+    .toolbar input { flex: 1 1 200px; padding: 10px 12px; }
+    .toolbar select { width: auto; padding: 10px 12px; }
+    .orders { display: grid; gap: 10px; }
+    @media (min-width: 900px) { .orders { grid-template-columns: 1fr 1fr; } }
+    .order {
+      background: #fff; border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); cursor: pointer;
+      border-left: 5px solid var(--line);
+    }
+    .order.pending { border-left-color: var(--warn); }
+    .order.verified { border-left-color: var(--ok); }
+    .order.delivered { border-left-color: var(--green-dark); }
+    .order.rejected { border-left-color: var(--danger); opacity: .7; }
+    .order .top { display: flex; justify-content: space-between; gap: 8px; }
+    .order .name { font-weight: 700; }
+    .order .amt { font: 500 1.15rem Kanit; color: var(--green); white-space: nowrap; }
+    .order .meta { color: var(--muted); font-size: .85rem; }
+    .chip { display: inline-block; font-size: .78rem; padding: 2px 8px; border-radius: 999px; background: #eee; margin-right: 4px; }
+    .chip.pending { background: #fff1d6; color: #8a5a00; }
+    .chip.verified { background: #dff3e6; color: var(--ok); }
+    .chip.delivered { background: #d7e9df; color: var(--green-dark); }
+    .chip.rejected { background: #fdecea; color: var(--danger); }
+    .chip.post { background: #e6eefc; color: #2b4f9e; }
+    .modal { position: fixed; inset: 0; background: #0008; z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
+    .sheet {
+      background: var(--bg); width: 100%; max-width: 720px; max-height: 94vh; overflow-y: auto;
+      border-radius: 20px 20px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    }
+    @media (min-width: 760px) { .modal { align-items: center; } .sheet { border-radius: 20px; } }
+    .sheet .close { float: right; background: none; border: 0; font-size: 1.8rem; cursor: pointer; line-height: 1; }
+    .kv { display: grid; grid-template-columns: 120px 1fr; gap: 4px 12px; font-size: .95rem; }
+    .kv dt { color: var(--muted); }
+    .kv dd { margin: 0; word-break: break-word; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .imgs { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-top: 12px; }
+    .imgs img { border-radius: 10px; cursor: zoom-in; background: #fff; }
+    .imgs .cap { font-size: .8rem; color: var(--muted); }
+    #card-preview canvas { width: 100%; height: auto; border-radius: 10px; }
+    .login { max-width: 420px; margin: 40px auto; }
+    .set-grid { display: grid; gap: 0 12px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 520px) { .set-grid { grid-template-columns: 1fr; } }
+    .switch { display: flex; align-items: center; gap: 10px; font-weight: 500; margin: 10px 0; }
+    .switch input { width: 22px; height: 22px; accent-color: var(--green); }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="container wide">
+    <a href="index.html" class="back" aria-label="หน้าหลัก">‹</a>
+    <div class="brand">ระบบหลังบ้าน<small id="who">ผ้าป่าเพื่อการศึกษา</small></div>
+    <button id="btn-logout" class="btn btn-sm btn-gold" hidden>ออกจากระบบ</button>
+  </div></header>
+
+  <section id="login" class="container login" hidden>
+    <div class="card">
+      <h2>เข้าสู่ระบบเจ้าหน้าที่</h2>
+      <button id="btn-google" class="btn btn-primary btn-block">เข้าสู่ระบบด้วย Google</button>
+      <p class="hint" style="text-align:center">หรือ</p>
+      <label for="l-email">อีเมล</label><input id="l-email" type="email" autocomplete="username">
+      <label for="l-pass">รหัสผ่าน</label><input id="l-pass" type="password" autocomplete="current-password">
+      <button id="btn-email" class="btn btn-outline btn-block" style="margin-top:14px">เข้าสู่ระบบ</button>
+      <div id="login-err" class="alert alert-err" hidden></div>
+    </div>
+  </section>
+
+  <section id="app" hidden>
+    <nav class="tabs" id="tabs">
+      <button data-tab="overview" class="on">📊 ภาพรวม</button>
+      <button data-tab="shirt">👕 เสื้อ <span class="badge" data-badge="shirt" hidden></span></button>
+      <button data-tab="ticket">🎟️ บัตรรำวง <span class="badge" data-badge="ticket" hidden></span></button>
+      <button data-tab="donation">🙏 บริจาค <span class="badge" data-badge="donation" hidden></span></button>
+      <button data-tab="settings">⚙️ ตั้งค่า</button>
+    </nav>
+
+    <main class="container wide">
+      <div id="tab-overview"></div>
+
+      <div id="tab-list" hidden>
+        <div class="toolbar">
+          <input id="q" type="search" placeholder="ค้นหา ชื่อ / เบอร์ / รหัส">
+          <select id="f-status">
+            <option value="">ทุกสถานะ</option>
+            <option value="pending">รอตรวจสอบ</option>
+            <option value="verified">ชำระแล้ว</option>
+            <option value="delivered">ส่งมอบแล้ว</option>
+            <option value="rejected">ไม่ผ่าน</option>
+          </select>
+          <select id="f-delivery">
+            <option value="">ทุกช่องทางรับ</option>
+            <option value="school">รับที่โรงเรียน</option>
+            <option value="post">ไปรษณีย์</option>
+          </select>
+          <button id="btn-csv" class="btn btn-sm btn-outline">⬇️ Excel (CSV)</button>
+        </div>
+        <div id="list-sum" class="hint"></div>
+        <div class="orders" id="orders"></div>
+      </div>
+
+      <div id="tab-settings" hidden></div>
+    </main>
+  </section>
+
+  <div id="modal" class="modal" hidden><div class="sheet" id="sheet"></div></div>
+
+  <script type="module" src="assets/js/admin.js"></script>
+</body>
+</html>

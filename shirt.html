@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>สั่งจองเสื้อผ้าป่า</title>
+  <meta name="theme-color" content="#063d27">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><div class="container">
+    <a href="index.html" class="back" aria-label="กลับ">‹</a>
+    <div class="brand">สั่งจองเสื้อผ้าป่า<small data-s="eventSubtitle"></small></div>
+  </div></header>
+
+  <main class="container">
+    <div id="closed-msg" class="card" hidden><h2>ปิดรับสั่งจองเสื้อแล้ว</h2><p>ขออนุโมทนาบุญทุกท่าน</p></div>
+
+    <div id="form">
+      <div class="card">
+        <img src="assets/img/shirt.jpg" alt="ตัวอย่างเสื้อ" style="border-radius:12px">
+        <p style="margin-bottom:0">เสื้อคอโปโล ราคาตัวละ <strong data-s="shirtPrice">300</strong> บาท</p>
+        <details><summary>ดูตารางไซส์ (นิ้ว)</summary><img src="assets/img/size-chart.jpg" alt="ตารางไซส์เสื้อ" style="margin-top:8px"></details>
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">1</span>เลือกไซส์และจำนวน</h2>
+        <div id="sizes"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">2</span>ข้อมูลผู้สั่งจอง</h2>
+        <div class="row-3">
+          <div><label for="f-prefix">คำนำหน้า</label><select id="f-prefix"></select></div>
+          <div><label for="f-first">ชื่อ</label><input id="f-first" type="text" autocomplete="given-name"></div>
+          <div><label for="f-last">นามสกุล</label><input id="f-last" type="text" autocomplete="family-name"></div>
+        </div>
+        <label for="f-phone">เบอร์โทรศัพท์</label>
+        <input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" required>
+
+        <h3>ช่องทางการรับเสื้อ</h3>
+        <div class="choice">
+          <label><input type="radio" name="delivery" value="school"><div>รับที่ รร. โคกสีวิทยาสรรค์</div></label>
+          <label><input type="radio" name="delivery" value="post"><div>จัดส่งทางไปรษณีย์<small id="ship-note"></small></div></label>
+        </div>
+        <div id="address-box" hidden>
+          <label for="f-address">ที่อยู่สำหรับจัดส่ง <span class="opt">(บ้านเลขที่ หมู่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์)</span></label>
+          <textarea id="f-address" autocomplete="street-address"></textarea>
+        </div>
+        <label for="f-note">หมายเหตุ <span class="opt">(ไม่บังคับ)</span></label>
+        <input id="f-note" type="text">
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">3</span>สรุปยอด</h2>
+        <div id="summary"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step-num">4</span>ชำระเงิน</h2>
+        <div id="pay"></div>
+        <h3>แนบสลิปการโอนเงิน</h3>
+        <div class="upload">
+          <input id="slip-input" type="file" accept="image/*">
+          <div class="ph">📎 แตะเพื่อเลือกรูปสลิป</div>
+          <div id="slip-preview" class="preview"></div>
+        </div>
+        <div id="slip-status" class="slip-status"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="bottom-bar"><div class="container">
+    <div class="sum"><small>ยอดรวม (<span id="qty-bar">0</span> ตัว)</small><strong id="total-bar">0</strong> บาท</div>
+    <button id="submit" class="btn btn-primary">ยืนยันสั่งจอง</button>
+  </div></div>
+
+  <script type="module">
+    import { initOrderPage } from "./assets/js/order-form.js";
+    import { $, $$, baht } from "./assets/js/common.js";
+    import { SHIRT_SIZES } from "./assets/js/config.js";
+
+    const qty = {};
+    const total = () => Object.values(qty).reduce((a, b) => a + b, 0);
+
+    initOrderPage({
+      type: "shirt",
+      prefix: "SH",
+      openKey: "openShirt",
+      hasDelivery: true,
+      shippingKey: "shirtShipping",
+      successTitle: "สั่งจองเสื้อเรียบร้อย",
+      onReady(s, refresh) {
+        const groups = [["ไซส์เด็ก", 0, 6], ["ไซส์ผู้ใหญ่", 6, 12], ["ไซส์ใหญ่พิเศษ", 12, 18]];
+        $("#sizes").innerHTML = groups.map(([title, a, b]) => `
+          <div class="size-group-title">${title}</div>
+          <div class="size-grid">${SHIRT_SIZES.slice(a, b).map((z) => `
+            <div class="size-cell" data-size="${z.size}">
+              <div class="sz">${z.size}</div>
+              <div class="meas">อก ${z.chest}" · ยาว ${z.length}"</div>
+              <div class="stepper">
+                <button type="button" class="minus" aria-label="ลด">−</button>
+                <input type="number" min="0" max="999" value="0" inputmode="numeric" aria-label="จำนวนไซส์ ${z.size}">
+                <button type="button" class="plus" aria-label="เพิ่ม">+</button>
+              </div>
+            </div>`).join("")}</div>`).join("");
+        $$(".size-cell").forEach((cell) => {
+          const input = $("input", cell);
+          const set = (v) => {
+            v = Math.max(0, Math.min(999, parseInt(v, 10) || 0));
+            input.value = v;
+            if (v) qty[cell.dataset.size] = v; else delete qty[cell.dataset.size];
+            cell.classList.toggle("has", v > 0);
+            $("#qty-bar").textContent = total();
+            refresh();
+          };
+          $(".minus", cell).onclick = () => set(+input.value - 1);
+          $(".plus", cell).onclick = () => set(+input.value + 1);
+          input.oninput = () => set(input.value);
+          input.onfocus = () => input.select();
+        });
+        const ship = Number(s.shirtShipping || 0);
+        $("#ship-note").textContent = ship ? `ค่าส่ง ${baht(ship)} บาท` : "";
+      },
+      calc(s) {
+        const lines = SHIRT_SIZES.filter((z) => qty[z.size]).map((z) => [`ไซส์ ${z.size} × ${qty[z.size]} ตัว`, qty[z.size] * s.shirtPrice]);
+        const subtotal = total() * s.shirtPrice;
+        return { lines, subtotal, error: total() ? "" : "กรุณาเลือกไซส์และจำนวนเสื้อ" };
+      },
+      extra() {
+        const items = {};
+        SHIRT_SIZES.forEach((z) => { if (qty[z.size]) items[z.size] = qty[z.size]; });
+        return { items, qty: total() };
+      },
+    });
+  </script>
+</body>
+</html>

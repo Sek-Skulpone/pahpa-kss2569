@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>รายนามผู้ร่วมทำบุญ</title>
+  <meta name="theme-color" content="#063d27">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body style="padding-bottom:0">
+  <header class="topbar"><div class="container">
+    <a href="index.html" class="back" aria-label="กลับ">‹</a>
+    <div class="brand">รายนามผู้ร่วมทำบุญ<small data-s="eventSubtitle"></small></div>
+  </div></header>
+
+  <main class="container">
+    <div class="card" style="text-align:center">
+      <div class="hint">ขออนุโมทนาบุญกับผู้ร่วมทำบุญทุกท่าน</div>
+      <div id="count" style="font-family:Kanit;font-size:1.3rem;color:var(--green-dark)">…</div>
+    </div>
+    <ul class="donor-list" id="list"></ul>
+    <p style="text-align:center;margin-top:24px"><a href="donate.html" class="btn btn-gold">🙏 ร่วมทำบุญ</a></p>
+  </main>
+  <footer data-s="schoolName">โรงเรียนโคกสีวิทยาสรรค์</footer>
+
+  <script type="module">
+    import { db, isConfigured, collection, query, orderBy, onSnapshot } from "./assets/js/firebase.js";
+    import { $, baht, escapeHtml, loadSettings, fillEventText, setupBanner } from "./assets/js/common.js";
+    setupBanner();
+    fillEventText(await loadSettings());
+    if (isConfigured) {
+      onSnapshot(query(collection(db, "publicDonors"), orderBy("createdAt", "desc")), (snap) => {
+        const rows = snap.docs.map((d) => d.data());
+        $("#count").textContent = `${rows.length.toLocaleString("th-TH")} รายการ`;
+        $("#list").innerHTML = rows.map((r) => `
+          <li><div><div class="n">${escapeHtml(r.name)}</div>${r.subtitle ? `<div class="p">${escapeHtml(r.subtitle)}</div>` : ""}</div>
+          <div class="a">${baht(r.amount)} ฿</div></li>`).join("");
+      }, (e) => ($("#count").textContent = "โหลดข้อมูลไม่สำเร็จ"));
+    }
+  </script>
+</body>
+</html>
