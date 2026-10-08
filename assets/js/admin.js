@@ -242,7 +242,7 @@ function renderList() {
       </div>
       <div class="meta">${escapeHtml(o.code)} · ${fmtTime(o.createdAt)}${o.phone ? " · " + escapeHtml(o.phone) : ""}</div>
       <div class="meta">${escapeHtml(o.type === "donation" ? [o.position, o.workplace].filter(Boolean).join(" · ") : orderSummaryText(o))}</div>
-      <div style="margin-top:4px"><span class="chip ${o.status}">${STATUS_LABEL[o.status]}</span>${o.delivery === "post" ? '<span class="chip post">ไปรษณีย์</span>' : ""}${o.hasPhoto ? '<span class="chip">มีรูป</span>' : ""}</div>
+      <div style="margin-top:4px"><span class="chip ${o.status}">${STATUS_LABEL[o.status]}</span>${o.delivery === "post" ? '<span class="chip post">ไปรษณีย์</span>' : ""}${o.hasPhoto ? '<span class="chip">มีรูป</span>' : ""}${o.hasSlip === false ? '<span class="chip rejected">ไม่แนบสลิป</span>' : ""}${o.type === "donation" && o.allowPublish === false ? '<span class="chip">ไม่ต้องการป้าย</span>' : ""}</div>
     </div>`).join("") || `<p class="hint">ไม่มีรายการ</p>`;
   $$("#orders .order").forEach((el) => (el.onclick = () => openOrder(el.dataset.id)));
 }
@@ -287,8 +287,10 @@ async function openOrder(id) {
     ["ยอดเงิน", `<strong>${baht(o.total)} บาท</strong>`],
     o.note && ["หมายเหตุ", escapeHtml(o.note)],
     o.type === "donation" && ["แสดงรายนาม", o.showName ? "ยินยอม" : "ไม่ประสงค์ออกนาม"],
-    o.type === "donation" && ["เผยแพร่รูป", o.allowPublish ? "ยินยอม" : "ไม่ยินยอม"],
-    ["เลขอ้างอิงสลิป", o.slipRef ? escapeHtml(o.slipRef) : '<span class="hint">อ่าน QR ไม่ได้ — ตรวจด้วยตา</span>'],
+    o.type === "donation" && ["ป้ายขอบคุณ", o.allowPublish ? "ต้องการ" : "ไม่ต้องการ"],
+    o.hasSlip === false
+      ? ["สลิป", '<span class="chip rejected">ไม่แนบสลิป — ตรวจยอดจากบัญชีธนาคาร</span>']
+      : ["เลขอ้างอิงสลิป", o.slipRef ? escapeHtml(o.slipRef) : '<span class="hint">อ่าน QR ไม่ได้ — ตรวจด้วยตา</span>'],
   ].filter(Boolean);
 
   const btn = (status, label, cls) => (o.status === status ? "" : `<button class="btn btn-sm ${cls}" data-status="${status}">${label}</button>`);
@@ -302,7 +304,7 @@ async function openOrder(id) {
       ${o.type !== "donation" ? btn("delivered", "📦 ส่งมอบแล้ว", "btn-gold") : ""}
       ${btn("pending", "↺ รอตรวจสอบ", "btn-outline")}
       ${btn("rejected", "✕ ไม่ผ่าน", "btn-danger")}
-      ${o.type === "donation" ? '<button class="btn btn-sm btn-gold" id="btn-card">🖼️ สร้างป้ายขอบคุณ</button>' : ""}
+      ${o.type === "donation" && o.allowPublish !== false ? '<button class="btn btn-sm btn-gold" id="btn-card">🖼️ สร้างป้ายขอบคุณ</button>' : ""}
     </div>
     <div class="imgs" id="imgs"><p class="hint">กำลังโหลดรูป…</p></div>
     <div id="card-preview"></div>

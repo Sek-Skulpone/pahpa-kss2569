@@ -57,7 +57,7 @@ service cloud.firestore {
     // สลิปและรูปผู้บริจาค (เก็บเป็นรูปย่อ base64)
     match /orderFiles/{id} {
       allow create: if request.resource.data.keys().hasOnly(["slip", "photo", "createdAt"])
-        && request.resource.data.slip is string && request.resource.data.slip.size() < 400000
+        && (!("slip" in request.resource.data) || (request.resource.data.slip is string && request.resource.data.slip.size() < 400000))
         && (!("photo" in request.resource.data) || (request.resource.data.photo is string && request.resource.data.photo.size() < 450000))
         && !exists(/databases/$(database)/documents/orders/$(id))
         && existsAfter(/databases/$(database)/documents/orders/$(id));

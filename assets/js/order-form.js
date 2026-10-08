@@ -23,6 +23,7 @@ const store = {
  * opts.getState()/opts.setState(state)  เก็บ/คืนค่าที่เลือกไว้ (ใช้ตอนกลับมาจากแอปธนาคาร)
  * opts.successTitle
  * opts.photoInput  ช่องแนบรูปผู้บริจาค (ไม่บังคับ)
+ * opts.optionalSlip / opts.optionalName  ไม่บังคับแนบสลิป / กรอกชื่อ (ใช้กับการบริจาค)
  */
 export async function initOrderPage(opts) {
   setupBanner();
@@ -232,10 +233,13 @@ export async function initOrderPage(opts) {
           📎 แนบสลิปและยืนยัน
           <input type="file" accept="image/*" id="rm-slip" style="position:absolute;inset:0;opacity:0">
         </label>
+        ${opts.optionalSlip ? '<button type="button" class="btn btn-gold btn-block" id="rm-noslip" style="margin-top:10px">จ่ายแล้ว ยืนยันโดยไม่แนบสลิป</button>' : ""}
         <button type="button" class="btn btn-outline btn-block" id="rm-later" style="margin-top:10px">ยังไม่ได้จ่าย</button>
       </div>`;
     document.body.append(m);
     $("#rm-later", m).onclick = () => { store.del(AWAIT_KEY); m.remove(); };
+    const noSlip = $("#rm-noslip", m);
+    if (noSlip) noSlip.onclick = () => { m.remove(); submit(); };
     $("#rm-slip", m).onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -259,6 +263,7 @@ export async function initOrderPage(opts) {
   const btn = $("#submit");
   btn.addEventListener("click", () => {
     if (!slipFile && !validate({ needSlip: false })) {
+      if (opts.optionalSlip) return showReturnModal();
       // ยังไม่แนบสลิป: พาไปส่วนชำระเงิน
       $("#pay").scrollIntoView({ behavior: "smooth", block: "start" });
       toast("กรุณาชำระเงิน แล้วแนบสลิปการโอน", "err");
@@ -284,8 +289,9 @@ export async function initOrderPage(opts) {
     overlay.innerHTML = `<div class="pay-panel" style="text-align:center"><div class="spinner dark"></div><h2 style="margin-top:12px">กำลังบันทึกรายการ…</h2></div>`;
     document.body.append(overlay);
     try {
-      const files = { slip: await compressImage(slipFile, { maxDim: 1100, maxBytes: 350_000 }) };
-      if (photoFile) files.photo = await compressImage(photoFile, { maxDim: 900, maxBytes: 420_000 });
+      const files = {};
+      if (slipFile) files.slip = await compressImage(slipFile, { maxDim: 900, maxBytes: 180_000 });
+      if (photoFile) files.photo = await compressImage(photoFile, { maxDim: 800, maxBytes: 220_000 });
       const first = $("#f-first").value.trim();
       const last = $("#f-last").value.trim();
       const prefix = prefixSel.value;
@@ -295,7 +301,8 @@ export async function initOrderPage(opts) {
         prefix,
         firstName: first,
         lastName: last,
-        fullName: `${prefix === "อื่นๆ" ? "" : prefix}${first} ${last}`.trim(),
+        fullName: first || last ? `${prefix === "อื่นๆ" ? "" : prefix}${first} ${last}`.trim() : "ผู้ไม่ประสงค์ออกนาม",
+        hasSlip: !!slipFile,
         phone: $("#f-phone").value.trim(),
         delivery: opts.hasDelivery ? deliveryVal() : null,
         address: opts.hasDelivery && deliveryVal() === "post" ? $("#f-address").value.trim() : "",
@@ -326,14 +333,14 @@ export async function initOrderPage(opts) {
   function validate({ needSlip }) {
     if (current.error) return current.error;
     if (current.total <= 0) return "ยอดเงินต้องมากกว่า 0";
-    if (!$("#f-first").value.trim() || !$("#f-last").value.trim()) return "กรุณากรอกชื่อและนามสกุล";
+    if (!opts.optionalName && (!$("#f-first").value.trim() || !$("#f-last").value.trim())) return "กรุณากรอกชื่อและนามสกุล";
     const phone = $("#f-phone").value.replace(/\D/g, "");
     if ($("#f-phone").required && phone.length < 9) return "กรุณากรอกเบอร์โทรให้ถูกต้อง";
     if (opts.hasDelivery) {
       if (!deliveryVal()) return "กรุณาเลือกช่องทางการรับ";
       if (deliveryVal() === "post" && $("#f-address").value.trim().length < 15) return "กรุณากรอกที่อยู่สำหรับจัดส่งให้ครบถ้วน";
     }
-    if (needSlip && !slipFile) return "กรุณาแนบสลิปการโอนเงิน";
+    if (needSlip && !slipFile && !opts.optionalSlip) return "กรุณาแนบสลิปการโอนเงิน";
     return "";
   }
 }

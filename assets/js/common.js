@@ -157,10 +157,12 @@ export async function submitOrder(order, files, slip) {
     hasPhoto: !!files.photo,
     createdAt: serverTimestamp(),
   });
-  const f = { createdAt: serverTimestamp() };
-  if (files.slip) f.slip = files.slip;
-  if (files.photo) f.photo = files.photo;
-  batch.set(doc(db, "orderFiles", id), f);
+  if (files.slip || files.photo) {
+    const f = { createdAt: serverTimestamp() };
+    if (files.slip) f.slip = files.slip;
+    if (files.photo) f.photo = files.photo;
+    batch.set(doc(db, "orderFiles", id), f);
+  }
   if (slip?.ref) batch.set(doc(db, "slipRefs", slip.ref), { orderId: id, createdAt: serverTimestamp() });
   await batch.commit();
   notifyLine(order).catch(() => {});
@@ -189,7 +191,7 @@ export async function notifyLine(o) {
     o.phone ? `โทร: ${o.phone}` : "",
     orderSummaryText(o),
     o.delivery ? `รับ: ${DELIVERY_LABEL[o.delivery]}` : "",
-    `ยอดเงิน: ${baht(o.total)} บาท`,
+    `ยอดเงิน: ${baht(o.total)} บาท${o.hasSlip === false ? " (ไม่แนบสลิป)" : ""}`,
     `ตรวจสอบ: ${location.origin}${location.pathname.replace(/[^/]*$/, "")}staff-49aacfdc.html`,
   ].filter(Boolean).join("\n");
   await fetch(LINE_NOTIFY_URL, {
@@ -245,7 +247,7 @@ export function showSuccess(container, { code, title, total, extraHtml = "" }) {
       <div class="success-icon">✅</div>
       <h2>สำเร็จแล้ว!</h2>
       <p style="font-size:1.1rem;margin:0 0 6px"><strong>${escapeHtml(title)}</strong></p>
-      <p>ระบบบันทึกรายการและสลิปของท่านเรียบร้อยแล้ว 🙏</p>
+      <p>ระบบบันทึกรายการของท่านเรียบร้อยแล้ว 🙏</p>
       <div class="code-box">รหัสรายการ<br><strong>${escapeHtml(code)}</strong></div>
       <p>ยอดเงิน <strong>${baht(total)}</strong> บาท</p>
       ${extraHtml}

@@ -41,8 +41,8 @@
         <h2><span class="step-num">2</span>ข้อมูลผู้ร่วมทำบุญ</h2>
         <div class="row-3">
           <div><label for="f-prefix">คำนำหน้า</label><select id="f-prefix"></select></div>
-          <div><label for="f-first">ชื่อ</label><input id="f-first" type="text" autocomplete="given-name"></div>
-          <div><label for="f-last">นามสกุล</label><input id="f-last" type="text" autocomplete="family-name"></div>
+          <div><label for="f-first">ชื่อ <span class="opt">(ไม่บังคับ)</span></label><input id="f-first" type="text" autocomplete="given-name"></div>
+          <div><label for="f-last">นามสกุล <span class="opt">(ไม่บังคับ)</span></label><input id="f-last" type="text" autocomplete="family-name"></div>
         </div>
         <div class="row">
           <div><label for="f-position">ตำแหน่ง <span class="opt">(ไม่บังคับ)</span></label><input id="f-position" type="text"></div>
@@ -59,7 +59,7 @@
         <h2><span class="step-num">3</span>ชำระเงิน</h2>
         <div id="pay"></div>
         <div id="summary" hidden></div>
-        <h3>แนบสลิปการโอนเงิน</h3>
+        <h3>แนบสลิปการโอนเงิน <span class="opt" style="font-size:.85rem;color:var(--muted);font-weight:400">(ไม่บังคับ)</span></h3>
         <div class="upload">
           <input id="slip-input" type="file" accept="image/*">
           <div class="ph">📎 แตะเพื่อเลือกรูปสลิป</div>
@@ -69,14 +69,16 @@
       </div>
 
       <div class="card">
-        <h2><span class="step-num">4</span>รูปผู้ร่วมทำบุญ <span class="opt" style="font-size:.9rem;color:var(--muted)">(ไม่บังคับ)</span></h2>
-        <p class="hint" style="margin-top:0">สำหรับทำป้ายขอบคุณประชาสัมพันธ์ในเพจ <span data-s="schoolName">โรงเรียนโคกสีวิทยาสรรค์</span></p>
+        <h2><span class="step-num">4</span>ป้ายขอบคุณ</h2>
+        <label class="check" style="margin-top:0"><input type="checkbox" id="f-publish" checked> ต้องการให้ทำป้ายขอบคุณ ลงเพจ <span data-s="schoolName">โรงเรียนโคกสีวิทยาสรรค์</span></label>
+        <div id="photo-box">
+        <p class="hint">แนบรูปของท่านเพื่อใส่ในป้ายขอบคุณ (ไม่บังคับ)</p>
         <div class="upload">
           <input id="photo-input" type="file" accept="image/*">
           <div class="ph">🖼️ แตะเพื่อเลือกรูปภาพ</div>
           <div id="photo-preview" class="preview"></div>
         </div>
-        <label class="check"><input type="checkbox" id="f-publish" checked> ยินดีให้นำรูปและชื่อไปเผยแพร่เพื่อขอบคุณในเพจโรงเรียน</label>
+        </div>
       </div>
     </div>
   </main>
@@ -98,6 +100,8 @@
       openKey: "openDonate",
       hasDelivery: false,
       photoInput: true,
+      optionalSlip: true,
+      optionalName: true,
       successTitle: "ขออนุโมทนาบุญ",
       onReady(s, refresh) {
         const presets = [100, 200, 500, 1000, 2000, 5000];
@@ -105,6 +109,10 @@
         const sync = () => $$("#chips button").forEach((b) => b.classList.toggle("on", +b.dataset.v === amt()));
         $$("#chips button").forEach((b) => (b.onclick = () => { $("#f-amount").value = b.dataset.v; sync(); refresh(); }));
         $("#f-amount").oninput = () => { sync(); refresh(); };
+        const pub = () => ($("#photo-box").hidden = !$("#f-publish").checked);
+        $("#f-publish").addEventListener("change", pub);
+        $("#form").addEventListener("change", pub);
+        setTimeout(pub);
       },
       getState: () => ({ amount: $("#f-amount").value }),
       setState: (st) => { $("#f-amount").value = st.amount || ""; $("#f-amount").oninput(); },
@@ -117,7 +125,7 @@
           amount: amt(),
           position: $("#f-position").value.trim(),
           workplace: $("#f-workplace").value.trim(),
-          showName: $("#f-show").checked,
+          showName: $("#f-show").checked && !!($("#f-first").value.trim() || $("#f-last").value.trim()),
           allowPublish: $("#f-publish").checked,
         };
       },
