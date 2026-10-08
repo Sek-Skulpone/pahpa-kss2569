@@ -60,8 +60,8 @@ export const DEFAULT_SETTINGS = {
   contactShirtPhone: "0933249264",
   contactTicket: "ครูเพชรรัตน์ ประสานเชื้อ",
   contactTicketPhone: "0844059871",
-  contactInfo: "รองนงลักษณ์ ชาญนรา",
-  contactInfoPhone: "",
+  contactInfo: "ผอ.สราวุธ วิเชียรลม",
+  contactInfoPhone: "0635419232",
 };
 
 export const SHIRT_SIZES = [
