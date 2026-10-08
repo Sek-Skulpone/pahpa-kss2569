@@ -3,10 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ===== ใส่อีเมลของเจ้าหน้าที่ (แอดมิน) ที่นี่ =====
+    // แอดมิน = อีเมลในรายการนี้ หรือ อุปกรณ์ที่เปิดผ่าน "ลิงก์เจ้าหน้าที่" (มีคีย์ถูกต้อง)
     function isAdmin() {
-      return request.auth != null && request.auth.token.email in [
-        "saw.skulpone@gmail.com"
-      ];
+      return request.auth != null && (
+        request.auth.token.email in ["saw.skulpone@gmail.com"]
+        || exists(/databases/$(database)/documents/staffDevices/$(request.auth.uid))
+      );
     }
 
     function s(v, max) { return v is string && v.size() <= max; }
@@ -26,6 +28,20 @@ service cloud.firestore {
         && d.hasPhoto is bool
         && (d.type == "donation" || (d.delivery in ["school", "post"]))
         && d.keys().size() <= 30;
+    }
+
+    // คีย์ของลิงก์เจ้าหน้าที่ (ตั้งใน Firebase Console: private/staffKey { key: "..." }) — ไม่มีใครอ่านได้
+    match /private/{id} {
+      allow read, write: if false;
+    }
+
+    // อุปกรณ์ที่ลงทะเบียนด้วยคีย์ถูกต้อง (ยกเลิกทั้งหมดได้โดยเปลี่ยนคีย์แล้วลบ collection นี้)
+    match /staffDevices/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["key", "createdAt"])
+        && request.resource.data.key == get(/databases/$(database)/documents/private/staffKey).data.key;
+      allow list, delete: if isAdmin();
     }
 
     match /settings/{id} {

@@ -3,7 +3,7 @@ import {
   serverTimestamp,
 } from "./firebase.js";
 import {
-  GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText,
@@ -21,24 +21,50 @@ let firstLoad = true;
 const known = new Set();
 
 // ---------------- auth ----------------
+// เจ้าหน้าที่เข้าด้วย "ลิงก์ลับ" (#k=คีย์) ไม่ต้องกรอกรหัส — คีย์จริงเก็บใน Firestore private/staffKey
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
+const keyFromHash = new URLSearchParams(location.hash.slice(1)).get("k");
+if (keyFromHash) lsSet("staffKey", keyFromHash);
+const staffKey = keyFromHash || lsGet("staffKey");
+
+function showLogin(msg) {
+  unsub?.();
+  $("#app").hidden = true;
+  $("#btn-logout").hidden = true;
+  $("#login").hidden = false;
+  if (msg) loginError({ message: msg });
+}
+
 if (!isConfigured) {
   $("#login").hidden = false;
 } else {
-  onAuthStateChanged(auth, (user) => {
-    if (user) startApp(user);
-    else {
-      unsub?.();
-      $("#app").hidden = true;
-      $("#btn-logout").hidden = true;
-      $("#login").hidden = false;
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      if (staffKey) {
+        signInAnonymously(auth).catch((e) => showLogin("เชื่อมต่อไม่สำเร็จ: " + e.code));
+      } else showLogin();
+      return;
     }
+    if (user.isAnonymous) {
+      try {
+        const ref = doc(db, "staffDevices", user.uid);
+        if (!(await getDoc(ref)).exists()) await setDoc(ref, { key: staffKey || "", createdAt: serverTimestamp() });
+      } catch (e) {
+        lsSet("staffKey", null);
+        await signOut(auth);
+        showLogin("ลิงก์เจ้าหน้าที่ไม่ถูกต้อง หรือถูกยกเลิกแล้ว");
+        return;
+      }
+    }
+    startApp(user);
   });
 }
 
 function loginError(e) {
   const el = $("#login-err");
   el.hidden = false;
-  el.textContent = "เข้าสู่ระบบไม่สำเร็จ: " + (e.code || e.message);
+  el.textContent = e.message && !e.code ? e.message : "เข้าสู่ระบบไม่สำเร็จ: " + (e.code || e.message);
 }
 
 $("#btn-google").onclick = async () => {
@@ -52,21 +78,13 @@ $("#btn-google").onclick = async () => {
     } else loginError(e);
   }
 };
-$("#btn-email").onclick = async () => {
-  unlockAudio();
-  try {
-    await signInWithEmailAndPassword(auth, $("#l-email").value.trim(), $("#l-pass").value);
-  } catch (e) {
-    loginError(e);
-  }
-};
 $("#btn-logout").onclick = () => signOut(auth);
 
 async function startApp(user) {
   $("#login").hidden = true;
   $("#app").hidden = false;
-  $("#btn-logout").hidden = false;
-  $("#who").textContent = user.email || user.displayName || "";
+  $("#btn-logout").hidden = user.isAnonymous;
+  $("#who").textContent = user.isAnonymous ? "เจ้าหน้าที่" : user.email || user.displayName || "";
   settings = await loadSettings();
 
   firstLoad = true;
@@ -84,7 +102,8 @@ async function startApp(user) {
       console.error(e);
       $("#app").hidden = true;
       $("#login").hidden = false;
-      loginError({ message: e.code === "permission-denied" ? `บัญชี ${user.email} ไม่มีสิทธิ์ผู้ดูแล (ต้องเพิ่มอีเมลใน firestore.rules)` : e.message });
+      lsSet("staffKey", null);
+      loginError({ message: e.code === "permission-denied" ? "ไม่มีสิทธิ์เข้าถึงข้อมูล กรุณาใช้ลิงก์สำหรับเจ้าหน้าที่" : e.message });
       signOut(auth);
     },
   );
@@ -313,7 +332,7 @@ async function openOrder(id) {
 
 async function setStatus(o, status) {
   try {
-    await updateDoc(doc(db, "orders", o.id), { status, statusAt: serverTimestamp(), statusBy: auth.currentUser.email || "" });
+    await updateDoc(doc(db, "orders", o.id), { status, statusAt: serverTimestamp(), statusBy: auth.currentUser.email || "เจ้าหน้าที่" });
     if (o.type === "donation") await syncPublicDonor({ ...o, status });
     toast(`เปลี่ยนสถานะเป็น "${STATUS_LABEL[status]}" แล้ว`, "ok");
     closeModal();
