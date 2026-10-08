@@ -91,6 +91,9 @@
     .ledger input.inbook { width: 24px; height: 24px; accent-color: var(--green); }
     .ledger-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.05rem; }
     .ledger-total strong { font: 500 1.6rem Kanit; color: var(--green-dark); }
+    .pay-split { display: grid; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+    .pay-split div { display: flex; justify-content: space-between; }
+    .pay-split strong { font: 500 1.1rem Kanit; color: var(--green-dark); }
   </style>
 </head>
 <body>
@@ -152,6 +155,6 @@
 
   <div id="modal" class="modal" hidden><div class="sheet" id="sheet"></div></div>
 
-  <script type="module" src="assets/js/admin.js?v=11"></script>
+  <script type="module" src="assets/js/admin.js?v=12"></script>
 </body>
 </html>

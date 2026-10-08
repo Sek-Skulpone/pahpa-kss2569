@@ -1,9 +1,9 @@
 // บัญชีรายนามผู้ร่วมทำบุญ (สำหรับคัดลอกลงสมุดบัญชี)
-import { db, doc, updateDoc, setDoc, writeBatch, serverTimestamp } from "./firebase.js?v=11";
-import { $, $$, baht, escapeHtml, genCode, toast, STATUS_LABEL } from "./common.js?v=11";
-import { NAME_PREFIXES } from "./config.js?v=11";
+import { db, doc, updateDoc, setDoc, writeBatch, serverTimestamp } from "./firebase.js?v=12";
+import { $, $$, baht, escapeHtml, genCode, toast, STATUS_LABEL } from "./common.js?v=12";
+import { NAME_PREFIXES } from "./config.js?v=12";
 
-const opt = { scope: "paid", notInBook: false, q: "" };
+const opt = { scope: "paid", notInBook: false, q: "", pay: "" };
 let ctx = null;
 
 // ---------- จำนวนเงินเป็นตัวอักษร ----------
@@ -41,7 +41,19 @@ export function bahtText(n) {
 
 // ---------- ข้อมูล ----------
 const fmtDate = (ts) => (ts?.toDate ? ts.toDate().toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" }) : "—");
-const channel = (o) => (o.source === "manual" ? o.payMethod || "เงินสด" : "ออนไลน์");
+const channel = (o) => (o.source === "manual" ? o.payMethod || "เงินสด" : "โอน (ออนไลน์)");
+// กลุ่มช่องทางชำระ: เงินสด / เงินโอน / อื่นๆ
+export function payGroup(o) {
+  const m = o.source === "manual" ? o.payMethod || "เงินสด" : "โอนเงิน";
+  return m === "เงินสด" ? "cash" : m === "โอนเงิน" ? "transfer" : "other";
+}
+export const PAY_GROUP_LABEL = { cash: "💵 เงินสด", transfer: "🏦 เงินโอน", other: "📄 เช็ค / อื่นๆ" };
+const amountOf = (o) => Number(o.amount ?? o.total) || 0;
+function groupTotals(list) {
+  const g = { cash: [0, 0], transfer: [0, 0], other: [0, 0] };
+  list.forEach((o) => { const k = payGroup(o); g[k][0] += 1; g[k][1] += amountOf(o); });
+  return g;
+}
 const subtitle = (o) => [o.position, o.workplace].filter(Boolean).join(" / ");
 
 function rows() {
@@ -50,6 +62,7 @@ function rows() {
     .filter((o) => o.type === "donation" && o.status !== "rejected")
     .filter((o) => (opt.scope === "paid" ? ctx.isPaid(o) : true))
     .filter((o) => (opt.notInBook ? !o.inBook : true))
+    .filter((o) => !opt.pay || payGroup(o) === opt.pay)
     .filter((o) => !q || [o.fullName, o.position, o.workplace, o.code, o.phone].join(" ").toLowerCase().includes(q))
     .sort((a, b) => (a.createdAt?.toMillis?.() ?? 9e15) - (b.createdAt?.toMillis?.() ?? 9e15));
 }
@@ -66,6 +79,12 @@ export function renderLedger(box, context) {
           <option value="paid">เฉพาะที่ตรวจสลิปแล้ว</option>
           <option value="all">ทั้งหมด (รวมรอตรวจ)</option>
         </select>
+        <select id="lg-pay">
+          <option value="">ทุกช่องทาง</option>
+          <option value="cash">💵 เงินสด</option>
+          <option value="transfer">🏦 เงินโอน</option>
+          <option value="other">📄 เช็ค / อื่นๆ</option>
+        </select>
         <label class="switch" style="margin:0"><input type="checkbox" id="lg-notbook"> ยังไม่ลงสมุด</label>
       </div>
       <div class="toolbar" style="margin-top:0">
@@ -80,6 +99,7 @@ export function renderLedger(box, context) {
       <div class="card ledger-sum" id="lg-sum"></div>`;
     $("#lg-q").oninput = (e) => { opt.q = e.target.value; draw(); };
     $("#lg-scope").onchange = (e) => { opt.scope = e.target.value; draw(); };
+    $("#lg-pay").onchange = (e) => { opt.pay = e.target.value; draw(); };
     $("#lg-notbook").onchange = (e) => { opt.notInBook = e.target.checked; draw(); };
     $("#lg-add").onclick = openAddForm;
     $("#lg-print").onclick = printLedger;
@@ -117,6 +137,8 @@ function draw() {
   $("#lg-sum").innerHTML = `
     <div class="ledger-total"><span>รวม ${list.length.toLocaleString("th-TH")} ราย</span><strong>${baht(running)} บาท</strong></div>
     <div class="muted">(${bahtText(running)})</div>
+    <div class="pay-split">${Object.entries(groupTotals(list)).filter(([, [n]]) => n).map(([k, [n, sum]]) =>
+      `<div><span>${PAY_GROUP_LABEL[k]} <small class="muted">(${n} ราย)</small></span><strong>${baht(sum)} บาท</strong></div>`).join("")}</div>
     <div class="muted small" style="margin-top:6px">ลงสมุดแล้ว ${inBook} / ${list.length} รายการ</div>`;
 }
 
@@ -183,7 +205,9 @@ function printLedger() {
     <div class="sub">${escapeHtml(s.eventSubtitle || "")}<br>${escapeHtml(s.eventDate || "")} · ${escapeHtml(s.schoolName || "")}</div>
     <table><thead><tr><th>ที่</th><th>วันที่</th><th>ชื่อ - สกุล</th><th>ตำแหน่ง / หน่วยงาน</th><th>โทร</th><th>จำนวนเงิน (บาท)</th><th>ช่องทาง</th></tr></thead>
     <tbody>${trs}</tbody>
-    <tfoot><tr><td colspan="5" class="r">รวม ${list.length} ราย (${bahtText(running)})</td><td class="r">${baht(running)}</td><td></td></tr></tfoot></table>
+    <tfoot>${Object.entries(groupTotals(list)).filter(([, [n]]) => n).map(([k, [n, sum]]) =>
+      `<tr><td colspan="5" class="r" style="font-weight:400">${PAY_GROUP_LABEL[k].replace(/^\S+ /, "")} ${n} ราย</td><td class="r" style="font-weight:400">${baht(sum)}</td><td></td></tr>`).join("")}
+    <tr><td colspan="5" class="r">รวมทั้งสิ้น ${list.length} ราย (${bahtText(running)})</td><td class="r">${baht(running)}</td><td></td></tr></tfoot></table>
     <p style="margin-top:12px;font-size:12px">พิมพ์เมื่อ ${new Date().toLocaleString("th-TH")}</p>
     <script>document.fonts.ready.then(()=>setTimeout(()=>print(),300))<\/script></body></html>`);
   w.document.close();

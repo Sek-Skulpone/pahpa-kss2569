@@ -1,16 +1,16 @@
 import {
   app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
-} from "./firebase.js?v=11";
+} from "./firebase.js?v=12";
 import {
   initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText,
-} from "./common.js?v=11";
-import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=11";
-import { renderThanksCard, downloadCanvas } from "./thanks-card.js?v=11";
-import { renderLedger } from "./ledger.js?v=11";
+} from "./common.js?v=12";
+import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=12";
+import { renderThanksCard, downloadCanvas } from "./thanks-card.js?v=12";
+import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=12";
 
 setupBanner();
 // เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)
@@ -214,6 +214,18 @@ function renderOverview() {
         <tbody>${sizeRows.map((r) => `<tr><td>${r.size}</td><td>${r.paid}</td><td>${r.pend}</td><td>${r.paid + r.pend}</td></tr>`).join("")}</tbody>
         <tfoot><tr><td>รวม</td><td>${tp}</td><td>${tpe}</td><td>${tp + tpe}</td></tr></tfoot>
       </table>` : `<p class="hint">ยังไม่มีรายการสั่งเสื้อ</p>`}
+    </div>
+    <div class="card">
+      <h2>แยกตามช่องทางชำระ <span class="hint" style="font-size:.85rem">(ชำระแล้ว)</span></h2>
+      <table class="tbl">
+        <thead><tr><th></th><th>บริจาค</th><th>เสื้อ</th><th>บัตรรำวง</th><th>รวม</th></tr></thead>
+        <tbody>${["cash", "transfer", "other"].map((g) => {
+          const paidIn = (t) => orders.filter((o) => isPaid(o) && (!t || o.type === t) && payGroup(o) === g);
+          if (!paidIn().length && g === "other") return "";
+          return `<tr><td>${PAY_GROUP_LABEL[g]}</td><td>${baht(sum(paidIn("donation")))}</td><td>${baht(sum(paidIn("shirt")))}</td><td>${baht(sum(paidIn("ticket")))}</td><td><strong>${baht(sum(paidIn()))}</strong></td></tr>`;
+        }).join("")}</tbody>
+        <tfoot><tr><td>รวม</td><td>${baht(sum(dn.filter(isPaid)))}</td><td>${baht(sum(sh.filter(isPaid)))}</td><td>${baht(sum(tk.filter(isPaid)))}</td><td>${baht(paidAll)}</td></tr></tfoot>
+      </table>
     </div>
     <div class="card">
       <h2>สรุปบัตรรำวง</h2>
