@@ -35,7 +35,8 @@
     .tbl th { color: var(--muted); font-weight: 600; font-size: .85rem; }
     .tbl tfoot td { font-weight: 700; border-bottom: 0; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 10px; }
-    .toolbar input { flex: 1 1 200px; padding: 10px 12px; }
+    .toolbar input[type=search] { flex: 1 1 200px; padding: 10px 12px; }
+    .toolbar .switch { white-space: nowrap; }
     .toolbar select { width: auto; padding: 10px 12px; }
     .orders { display: grid; gap: 10px; }
     @media (min-width: 900px) { .orders { grid-template-columns: 1fr 1fr; } }
@@ -77,6 +78,19 @@
     @media (max-width: 520px) { .set-grid { grid-template-columns: 1fr; } }
     .switch { display: flex; align-items: center; gap: 10px; font-weight: 500; margin: 10px 0; }
     .switch input { width: 22px; height: 22px; accent-color: var(--green); }
+    .ledger-wrap { overflow-x: auto; }
+    .ledger { width: 100%; border-collapse: collapse; font-size: .95rem; min-width: 640px; }
+    .ledger th { background: var(--green-soft); color: var(--green-dark); font-weight: 600; padding: 10px 8px; text-align: left; position: sticky; top: 0; }
+    .ledger td { padding: 9px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+    .ledger .c { text-align: center; } .ledger .r { text-align: right; white-space: nowrap; }
+    .ledger .nowrap { white-space: nowrap; }
+    .ledger .nm { font-weight: 600; } .ledger .sub, .ledger .muted, .ledger-sum .muted { color: var(--muted); }
+    .ledger .small, .ledger-sum .small { font-size: .82rem; }
+    .ledger tr.done td { background: #f3f8f5; }
+    .ledger tr.done .nm { color: var(--muted); }
+    .ledger input.inbook { width: 24px; height: 24px; accent-color: var(--green); }
+    .ledger-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.05rem; }
+    .ledger-total strong { font: 500 1.6rem Kanit; color: var(--green-dark); }
   </style>
 </head>
 <body>
@@ -103,6 +117,7 @@
       <button data-tab="shirt">👕 เสื้อ <span class="badge" data-badge="shirt" hidden></span></button>
       <button data-tab="ticket">🎟️ บัตรรำวง <span class="badge" data-badge="ticket" hidden></span></button>
       <button data-tab="donation">🙏 บริจาค <span class="badge" data-badge="donation" hidden></span></button>
+      <button data-tab="ledger">📒 บัญชีรายนาม</button>
       <button data-tab="settings">⚙️ ตั้งค่า</button>
     </nav>
 
@@ -130,12 +145,13 @@
         <div class="orders" id="orders"></div>
       </div>
 
+      <div id="tab-ledger" hidden></div>
       <div id="tab-settings" hidden></div>
     </main>
   </section>
 
   <div id="modal" class="modal" hidden><div class="sheet" id="sheet"></div></div>
 
-  <script type="module" src="assets/js/admin.js?v=4"></script>
+  <script type="module" src="assets/js/admin.js?v=5"></script>
 </body>
 </html>

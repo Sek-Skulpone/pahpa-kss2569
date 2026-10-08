@@ -50,7 +50,7 @@ service cloud.firestore {
     }
 
     match /orders/{id} {
-      allow create: if validOrder(id);
+      allow create: if validOrder(id) || isAdmin();
       allow read, update, delete: if isAdmin();
     }
 

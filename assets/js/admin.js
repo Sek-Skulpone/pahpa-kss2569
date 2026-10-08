@@ -10,6 +10,7 @@ import {
 } from "./common.js";
 import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js";
 import { renderThanksCard, downloadCanvas } from "./thanks-card.js";
+import { renderLedger } from "./ledger.js";
 
 setupBanner();
 
@@ -159,9 +160,11 @@ function render() {
   });
   $("#tab-overview").hidden = currentTab !== "overview";
   $("#tab-settings").hidden = currentTab !== "settings";
+  $("#tab-ledger").hidden = currentTab !== "ledger";
   $("#tab-list").hidden = !["shirt", "ticket", "donation"].includes(currentTab);
   if (currentTab === "overview") renderOverview();
   else if (currentTab === "settings") renderSettings();
+  else if (currentTab === "ledger") renderLedger($("#tab-ledger"), { orders, isPaid, settings, syncPublicDonor, openModal, closeModal });
   else renderList();
 }
 
