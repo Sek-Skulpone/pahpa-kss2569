@@ -1,14 +1,11 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, setupFilePreview, toast,
-} from "./common.js?v=13";
-import { NAME_PREFIXES, PAYMENT_QR, BANK_APPS } from "./config.js?v=13";
+} from "./common.js?v=14";
+import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=14";
 
-// เบราว์เซอร์ในแอป LINE/Facebook เปิดแอปธนาคารไม่ได้
-const UA = navigator.userAgent;
-const inLine = / Line\//.test(UA);
-const inAppBrowser = inLine || /FBAN|FBAV|FB_IAB|Instagram|Messenger|TikTok/i.test(UA);
-if (inLine && !/[?&]openExternalBrowser=1/.test(location.search)) {
+// เบราว์เซอร์ในแอป LINE บันทึกรูปลงเครื่องไม่ค่อยได้
+if (/ Line\//.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
   // LINE รองรับพารามิเตอร์นี้ → เปิดหน้าเดิมใน Chrome/Safari
   const u = new URL(location.href);
   u.searchParams.set("openExternalBrowser", "1");
@@ -142,18 +139,24 @@ export async function initOrderPage(opts) {
   $("#form").addEventListener("change", saveDraft);
   $("#form").addEventListener("click", () => setTimeout(saveDraft));
 
-  // ---- จ่ายผ่านแอปธนาคาร ----
+  // ---- บันทึก QR ไปจ่ายในแอปธนาคาร ----
+  // โหลดรูปไว้ก่อน เพื่อให้ share() ยังอยู่ในจังหวะที่ผู้ใช้กด (Safari เข้มเรื่องนี้)
+  const qrBlob = fetch(qrSrc).then((r) => r.blob()).catch(() => null);
+
   $("#btn-payapp").addEventListener("click", async () => {
     const err = validate({ needSlip: false });
     if (err) return toast(err, "err");
     saveDraft();
+    store.set(AWAIT_KEY, { at: Date.now() });
+    const saved = await saveQrToPhone();
     try { await navigator.clipboard?.writeText(String(current.total)); } catch {}
-    openBankSheet();
+    openPaySheet(saved);
   });
 
   async function saveQrToPhone() {
     try {
-      const blob = await (await fetch(qrSrc)).blob();
+      const blob = await qrBlob;
+      if (!blob) return false;
       const file = new File([blob], "QR-ผ้าป่า-kss2569.jpg", { type: blob.type || "image/jpeg" });
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "QR ชำระเงิน" });
@@ -169,10 +172,7 @@ export async function initOrderPage(opts) {
     }
   }
 
-  const isAndroid = /android/i.test(navigator.userAgent);
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-  function openBankSheet() {
+  function openPaySheet(saved) {
     const sheet = document.createElement("div");
     sheet.className = "pay-sheet";
     sheet.innerHTML = `
@@ -180,60 +180,20 @@ export async function initOrderPage(opts) {
         <button class="pay-close" aria-label="ปิด">×</button>
         <h2>จ่ายผ่านแอปธนาคาร</h2>
         <div class="pay-steps">
-          <div class="pay-step"><b>1</b><div>บันทึกรูป QR ลงเครื่อง<br><button type="button" class="btn btn-outline btn-sm" id="ps-save">💾 บันทึกรูป QR</button> <span id="ps-saved" class="hint"></span></div></div>
-          <div class="pay-step"><b>2</b><div>เลือกแอปธนาคาร แล้วกด <u>สแกน</u> → <u>เลือกรูปจากอัลบั้ม</u></div></div>
+          <div class="pay-step"><b>1</b><div>${saved ? "บันทึกรูป QR แล้ว ✓" : "บันทึกรูป QR ลงเครื่อง"}
+            <span class="hint">(ถ้าไม่พบในอัลบั้ม กดค้างที่รูปด้านล่างแล้วเลือก "บันทึกรูป")</span><br>
+            <img src="${qrSrc}" alt="QR พร้อมเพย์" style="width:140px;margin-top:6px;border-radius:8px"></div></div>
+          <div class="pay-step"><b>2</b><div>เปิดแอปธนาคารของท่าน กด <u>สแกน</u> → <u>เลือกรูปจากอัลบั้ม</u> → เลือกรูป QR</div></div>
           <div class="pay-step"><b>3</b><div>ใส่ยอด <strong class="pay-amt">${baht(current.total)}</strong> บาท <span class="hint">(คัดลอกไว้ให้แล้ว)</span></div></div>
-          <div class="pay-step"><b>4</b><div>จ่ายเสร็จ <u>กลับมาที่หน้านี้</u> ระบบจะให้แนบสลิปและยืนยันทันที</div></div>
+          <div class="pay-step"><b>4</b><div>จ่ายเสร็จ <u>กลับมาที่หน้านี้</u> แล้วแนบสลิป</div></div>
         </div>
-        <div class="bank-grid">${BANK_APPS.map((b, i) => `
-          <button type="button" class="bank" data-i="${i}" style="background:${b.color};color:${b.text || "#fff"}">${escapeHtml(b.name)}</button>`).join("")}
-        </div>
-        ${inAppBrowser ? `<p class="hint" style="text-align:center;color:#b00020">⚠️ เปิดจากในแอป LINE/Facebook อาจกดเปิดแอปธนาคารไม่ได้<br>กด ⋯ มุมขวาบน → <b>เปิดในเบราว์เซอร์</b> แล้วทำรายการอีกครั้ง</p>` : ""}
-        <p class="hint" style="text-align:center;margin-bottom:0">ไม่มีแอปในรายการ? เปิดแอปธนาคารของท่านเองได้เลย แล้วกลับมาหน้านี้</p>
-        <button type="button" class="btn btn-outline btn-block" id="ps-manual" style="margin-top:10px">เปิดแอปเองแล้ว / จ่ายเสร็จแล้ว</button>
+        <button type="button" class="btn btn-primary btn-block btn-lg" id="ps-done">จ่ายเสร็จแล้ว แนบสลิป</button>
       </div>`;
     document.body.append(sheet);
     const close = () => sheet.remove();
     $(".pay-close", sheet).onclick = close;
     sheet.addEventListener("click", (e) => e.target === sheet && close());
-    $("#ps-save", sheet).onclick = async () => {
-      if (await saveQrToPhone()) $("#ps-saved", sheet).textContent = "✓ บันทึกแล้ว";
-    };
-    $("#ps-manual", sheet).onclick = () => {
-      store.set(AWAIT_KEY, { at: Date.now() });
-      close();
-      showReturnModal();
-    };
-    $$(".bank", sheet).forEach((btn) => (btn.onclick = () => {
-      const b = BANK_APPS[+btn.dataset.i];
-      store.set(AWAIT_KEY, { at: Date.now(), bank: b.name });
-      close();
-      launchApp(b);
-    }));
-  }
-
-  function launchApp(b) {
-    let left = false;
-    const onHide = () => { if (document.hidden) left = true; };
-    document.addEventListener("visibilitychange", onHide);
-    if (isAndroid) {
-      location.href = `intent://#Intent;package=${b.android};S.browser_fallback_url=${encodeURIComponent("https://play.google.com/store/apps/details?id=" + b.android)};end`;
-    } else {
-      location.href = b.ios;
-    }
-    setTimeout(() => {
-      document.removeEventListener("visibilitychange", onHide);
-      if (!left && !document.hidden) {
-        if (isIOS) {
-          // เปิดแอปไม่ได้ → ไป App Store (ถ้ามีแอปอยู่แล้วจะมีปุ่ม "เปิด")
-          location.href = `itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=${encodeURIComponent(b.search || b.name)}`;
-          showReturnModal();
-          return;
-        }
-        toast(`เปิดแอป ${b.name} ไม่ได้ — กรุณาเปิดแอปธนาคารเอง แล้วสแกนรูป QR ที่บันทึกไว้`, "err");
-        showReturnModal();
-      }
-    }, 2500);
+    $("#ps-done", sheet).onclick = () => { close(); showReturnModal(); };
   }
 
   // ---- กลับมาจากแอปธนาคาร ----

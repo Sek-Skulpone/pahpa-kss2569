@@ -271,12 +271,6 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24
   display: grid; place-items: center; font: 500 .85rem Kanit;
 }
 .pay-amt { font: 500 1.3rem Kanit; color: var(--green); }
-.bank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.bank {
-  border: 0; border-radius: 14px; padding: 16px 8px; font: 500 1rem Kanit; cursor: pointer;
-  box-shadow: 0 2px 8px #0002; touch-action: manipulation;
-}
-.bank:active { transform: scale(.97); }
 .spinner.dark { border-color: #0b5d3b33; border-top-color: var(--green); width: 40px; height: 40px; }
 .contact-card { font-size: .95rem; text-align: center; }
 .contact-card a { font-weight: 600; margin-left: 4px; }

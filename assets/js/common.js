@@ -1,5 +1,5 @@
-import { db, isConfigured, doc, getDoc, writeBatch, serverTimestamp } from "./firebase.js?v=13";
-import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=13";
+import { db, isConfigured, doc, getDoc, writeBatch, serverTimestamp } from "./firebase.js?v=14";
+import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=14";
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -237,8 +237,8 @@ export function paymentBlockHtml(qrSrc) {
   return `
     <div class="qr-box">
       <div class="pay-amount">ยอดที่ต้องชำระ <strong class="js-total">0</strong> บาท</div>
-      <button type="button" class="btn btn-gold btn-block btn-lg" id="btn-payapp">📱 จ่ายผ่านแอปธนาคาร</button>
-      <p class="hint" style="margin:6px 0 14px">ระบบจะบันทึกรูป QR และคัดลอกยอดเงินให้ แล้วเปิดแอปธนาคาร<br>จ่ายเสร็จแล้วกลับมาหน้านี้เพื่อยืนยัน</p>
+      <button type="button" class="btn btn-gold btn-block btn-lg" id="btn-payapp">💾 บันทึก QR ไปจ่ายในแอปธนาคาร</button>
+      <p class="hint" style="margin:6px 0 14px">บันทึกรูป QR แล้วสแกนจากอัลบั้มในแอปธนาคาร<br>จ่ายเสร็จแล้วกลับมาหน้านี้เพื่อแนบสลิป</p>
       <div class="or-line"><span>หรือสแกน QR นี้</span></div>
       <img src="${qrSrc}" alt="QR พร้อมเพย์ สำหรับโอนเงิน" class="qr-img" id="qr-img">
       <a class="btn btn-outline btn-sm" href="${qrSrc}" download="QR-ผ้าป่า-kss2569.jpg">⬇️ บันทึกรูป QR</a>
