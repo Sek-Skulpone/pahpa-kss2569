@@ -34,7 +34,7 @@ export const BANK_APPS = [
   { name: "Bangkok Bank", color: "#1e4598", android: "com.bbl.mobilebanking", ios: "bbl-mbanking://" },
   { name: "Krungsri", color: "#fec43b", text: "#5a4500", android: "com.krungsri.kma", ios: "kma://" },
   { name: "ttb touch", color: "#0050f0", android: "com.TMBTOUCH.PRODUCTION", ios: "ttbtouch://" },
-  { name: "MyMo (ออมสิน)", color: "#eb198d", android: "com.mymo.app", ios: "mymo://" },
+  { name: "MyMo (ออมสิน)", color: "#eb198d", android: "com.mymo.app", ios: "mymo://", search: "MyMo GSB" },
 ];
 
 // 3) ค่าเริ่มต้น (แอดมินแก้ไขได้ภายหลังที่หน้า admin > ตั้งค่า โดยไม่ต้องแก้โค้ด)

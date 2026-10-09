@@ -1,8 +1,19 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, setupFilePreview, toast,
-} from "./common.js?v=12";
-import { NAME_PREFIXES, PAYMENT_QR, BANK_APPS } from "./config.js?v=12";
+} from "./common.js?v=13";
+import { NAME_PREFIXES, PAYMENT_QR, BANK_APPS } from "./config.js?v=13";
+
+// เบราว์เซอร์ในแอป LINE/Facebook เปิดแอปธนาคารไม่ได้
+const UA = navigator.userAgent;
+const inLine = / Line\//.test(UA);
+const inAppBrowser = inLine || /FBAN|FBAV|FB_IAB|Instagram|Messenger|TikTok/i.test(UA);
+if (inLine && !/[?&]openExternalBrowser=1/.test(location.search)) {
+  // LINE รองรับพารามิเตอร์นี้ → เปิดหน้าเดิมใน Chrome/Safari
+  const u = new URL(location.href);
+  u.searchParams.set("openExternalBrowser", "1");
+  location.replace(u.href);
+}
 
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
@@ -177,6 +188,7 @@ export async function initOrderPage(opts) {
         <div class="bank-grid">${BANK_APPS.map((b, i) => `
           <button type="button" class="bank" data-i="${i}" style="background:${b.color};color:${b.text || "#fff"}">${escapeHtml(b.name)}</button>`).join("")}
         </div>
+        ${inAppBrowser ? `<p class="hint" style="text-align:center;color:#b00020">⚠️ เปิดจากในแอป LINE/Facebook อาจกดเปิดแอปธนาคารไม่ได้<br>กด ⋯ มุมขวาบน → <b>เปิดในเบราว์เซอร์</b> แล้วทำรายการอีกครั้ง</p>` : ""}
         <p class="hint" style="text-align:center;margin-bottom:0">ไม่มีแอปในรายการ? เปิดแอปธนาคารของท่านเองได้เลย แล้วกลับมาหน้านี้</p>
         <button type="button" class="btn btn-outline btn-block" id="ps-manual" style="margin-top:10px">เปิดแอปเองแล้ว / จ่ายเสร็จแล้ว</button>
       </div>`;
@@ -212,6 +224,12 @@ export async function initOrderPage(opts) {
     setTimeout(() => {
       document.removeEventListener("visibilitychange", onHide);
       if (!left && !document.hidden) {
+        if (isIOS) {
+          // เปิดแอปไม่ได้ → ไป App Store (ถ้ามีแอปอยู่แล้วจะมีปุ่ม "เปิด")
+          location.href = `itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=${encodeURIComponent(b.search || b.name)}`;
+          showReturnModal();
+          return;
+        }
         toast(`เปิดแอป ${b.name} ไม่ได้ — กรุณาเปิดแอปธนาคารเอง แล้วสแกนรูป QR ที่บันทึกไว้`, "err");
         showReturnModal();
       }
