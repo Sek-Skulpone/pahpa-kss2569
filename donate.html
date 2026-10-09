@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#063d27">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=16">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
   <style>
     .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -68,7 +68,7 @@
         <div id="slip-status" class="slip-status"></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="sign-card">
         <h2><span class="step-num">4</span>ป้ายขอบคุณ</h2>
         <label class="check" style="margin-top:0"><input type="checkbox" id="f-publish" checked> ต้องการให้ทำป้ายขอบคุณ ลงเพจ <span data-s="schoolName">โรงเรียนโคกสีวิทยาสรรค์</span></label>
         <div id="photo-box">
@@ -90,8 +90,8 @@
   </div></div>
 
   <script type="module">
-    import { initOrderPage } from "./assets/js/order-form.js?v=15";
-    import { $, $$, baht } from "./assets/js/common.js?v=15";
+    import { initOrderPage } from "./assets/js/order-form.js?v=16";
+    import { $, $$, baht } from "./assets/js/common.js?v=16";
 
     const amt = () => Math.round((parseFloat($("#f-amount").value) || 0) * 100) / 100;
 
@@ -101,6 +101,7 @@
       openKey: "openDonate",
       hasDelivery: false,
       photoInput: true,
+      reviewCard: "#sign-card",
       optionalSlip: true,
       optionalName: true,
       successTitle: "ขออนุโมทนาบุญ",

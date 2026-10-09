@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { firebaseConfig } from "./config.js?v=15";
+import { firebaseConfig } from "./config.js?v=16";
 
 export const isConfigured = !String(firebaseConfig.apiKey).startsWith("YOUR_");
 

@@ -274,3 +274,5 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24
 .spinner.dark { border-color: #0b5d3b33; border-top-color: var(--green); width: 40px; height: 40px; }
 .contact-card { font-size: .95rem; text-align: center; }
 .contact-card a { font-weight: 600; margin-left: 4px; }
+.card.flash { animation: flash 2.4s ease; }
+@keyframes flash { 0%, 60% { box-shadow: 0 0 0 3px var(--gold, #d4a017), var(--shadow); } }

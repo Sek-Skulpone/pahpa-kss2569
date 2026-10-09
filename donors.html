@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#063d27">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=16">
 </head>
 <body style="padding-bottom:0">
   <header class="topbar"><div class="container">
@@ -26,8 +26,8 @@
   <footer data-s="schoolName">โรงเรียนโคกสีวิทยาสรรค์</footer>
 
   <script type="module">
-    import { db, isConfigured, collection, query, orderBy, onSnapshot } from "./assets/js/firebase.js?v=15";
-    import { $, baht, escapeHtml, loadSettings, fillEventText, setupBanner } from "./assets/js/common.js?v=15";
+    import { db, isConfigured, collection, query, orderBy, onSnapshot } from "./assets/js/firebase.js?v=16";
+    import { $, baht, escapeHtml, loadSettings, fillEventText, setupBanner } from "./assets/js/common.js?v=16";
     setupBanner();
     fillEventText(await loadSettings());
     if (isConfigured) {

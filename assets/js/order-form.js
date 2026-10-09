@@ -1,8 +1,8 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, toast,
-} from "./common.js?v=15";
-import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=15";
+} from "./common.js?v=16";
+import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=16";
 
 // เบราว์เซอร์ในแอป LINE บันทึกรูปลงเครื่องไม่ค่อยได้
 if (/ Line\//.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
@@ -29,6 +29,7 @@ const store = {
  * opts.extra(s)    คืนข้อมูลเฉพาะของฟอร์ม (ใส่ลงใน order)
  * opts.onReady(s, refresh)
  * opts.getState()/opts.setState(state)  เก็บ/คืนค่าที่เลือกไว้ (ใช้ตอนกลับมาจากแอปธนาคาร)
+ * opts.reviewCard  ถ้ามี: หลังแนบสลิปจะพาไปการ์ดนี้ให้กรอกต่อ แทนการส่งทันที
  * opts.successTitle
  * opts.photoInput  ช่องแนบรูปผู้บริจาค (ไม่บังคับ)
  * opts.optionalSlip / opts.optionalName  ไม่บังคับแนบสลิป / กรอกชื่อ (ใช้กับการบริจาค)
@@ -64,6 +65,7 @@ export async function initOrderPage(opts) {
 
   // ---- slip ----
   let slipFile = null;
+  let paidNoSlip = false; // กด "จ่ายแล้ว ไม่แนบสลิป" ไว้แล้ว
   let slipInfo = null;
   async function setSlip(file) {
     slipFile = file;
@@ -236,19 +238,32 @@ export async function initOrderPage(opts) {
     document.body.append(m);
     $("#rm-later", m).onclick = () => { store.del(AWAIT_KEY); m.remove(); };
     const noSlip = $("#rm-noslip", m);
-    if (noSlip) noSlip.onclick = () => { m.remove(); submit(); };
+    if (noSlip) noSlip.onclick = () => {
+      m.remove();
+      paidNoSlip = true;
+      opts.reviewCard ? review("ยืนยันการโอนแล้ว") : submit();
+    };
     $("#rm-slip", m).onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
       m.remove();
       await setSlip(file);
-      submit();
+      opts.reviewCard ? review("แนบสลิปแล้ว ✓") : submit();
     };
+  }
+
+  // ยังไม่ส่งทันที: พาไปกรอกส่วนที่เหลือ (เช่น ป้ายขอบคุณ) แล้วให้ผู้ใช้กดส่งเอง
+  function review(msg) {
+    const card = $(opts.reviewCard);
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+    card.classList.add("flash");
+    setTimeout(() => card.classList.remove("flash"), 2500);
+    toast(msg + " — กรอกข้อมูลส่วนนี้ แล้วกด \"" + $("#submit").textContent.trim() + "\"", "ok");
   }
 
   function checkReturn() {
     const a = store.get(AWAIT_KEY);
-    if (!a || slipFile) return;
+    if (!a || slipFile || paidNoSlip) return;
     if (Date.now() - a.at > 2 * 60 * 60 * 1000) return store.del(AWAIT_KEY);
     showReturnModal();
   }
@@ -259,7 +274,7 @@ export async function initOrderPage(opts) {
   // ---- submit ----
   const btn = $("#submit");
   btn.addEventListener("click", () => {
-    if (!slipFile && !validate({ needSlip: false })) {
+    if (!slipFile && !paidNoSlip && !validate({ needSlip: false })) {
       if (opts.optionalSlip) return showReturnModal();
       // ยังไม่แนบสลิป: พาไปส่วนชำระเงิน
       $("#pay").scrollIntoView({ behavior: "smooth", block: "start" });
