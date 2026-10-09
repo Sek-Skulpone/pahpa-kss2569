@@ -1,8 +1,8 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
-  genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, setupFilePreview, toast,
-} from "./common.js?v=14";
-import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=14";
+  genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, toast,
+} from "./common.js?v=15";
+import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=15";
 
 // เบราว์เซอร์ในแอป LINE บันทึกรูปลงเครื่องไม่ค่อยได้
 if (/ Line\//.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
@@ -37,6 +37,7 @@ export async function initOrderPage(opts) {
   setupBanner();
   const DRAFT_KEY = "draft_" + opts.type;
   const AWAIT_KEY = "awaitpay_" + opts.type;
+  const PHOTO_KEY = "photo_" + opts.type;
   const qrSrc = PAYMENT_QR[opts.type];
 
   const prefixSel = $("#f-prefix");
@@ -87,11 +88,29 @@ export async function initOrderPage(opts) {
   }
   $("#slip-input").addEventListener("change", () => setSlip($("#slip-input").files[0] || null));
 
-  let photoFile = null;
+  // รูปผู้บริจาค: ย่อแล้วเก็บไว้ในเครื่องทันที เพราะหน้าเว็บมักถูกโหลดใหม่ตอนกลับจากแอปธนาคาร
+  let photoData = null;
   if (opts.photoInput) {
-    setupFilePreview($("#photo-input"), $("#photo-preview"), (file) => {
-      photoFile = file;
-      $(".ph", $("#photo-input").parentElement).hidden = !!file;
+    const ph = $(".ph", $("#photo-input").parentElement);
+    const showPhoto = (url) => {
+      $("#photo-preview").innerHTML = url ? `<img src="${url}" alt="รูปผู้บริจาค">` : "";
+      ph.hidden = !!url;
+    };
+    photoData = store.get(PHOTO_KEY);
+    showPhoto(photoData);
+    $("#photo-input").addEventListener("change", async () => {
+      const file = $("#photo-input").files[0];
+      photoData = null;
+      store.del(PHOTO_KEY);
+      showPhoto(null);
+      if (!file) return;
+      try {
+        photoData = await compressImage(file, { maxDim: 800, maxBytes: 220_000 });
+        store.set(PHOTO_KEY, photoData);
+        showPhoto(photoData);
+      } catch (e) {
+        toast(e.message || "อ่านไฟล์รูปไม่ได้", "err");
+      }
     });
   }
 
@@ -269,7 +288,7 @@ export async function initOrderPage(opts) {
     try {
       const files = {};
       if (slipFile) files.slip = await compressImage(slipFile, { maxDim: 900, maxBytes: 180_000 });
-      if (photoFile) files.photo = await compressImage(photoFile, { maxDim: 800, maxBytes: 220_000 });
+      if (photoData) files.photo = photoData;
       const first = $("#f-first").value.trim();
       const last = $("#f-last").value.trim();
       const prefix = prefixSel.value;
@@ -293,6 +312,7 @@ export async function initOrderPage(opts) {
       await submitOrder(order, files, slipInfo);
       store.del(DRAFT_KEY);
       store.del(AWAIT_KEY);
+      store.del(PHOTO_KEY);
       overlay.remove();
       $(".bottom-bar").hidden = true;
       showSuccess($("main"), { code: order.code, title: opts.successTitle, total: order.total });
