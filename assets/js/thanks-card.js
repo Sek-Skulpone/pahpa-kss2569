@@ -24,15 +24,37 @@ function fitText(ctx, text, maxWidth, size, weight = "500", family = "Kanit") {
   return s;
 }
 
+// ฟอนต์ไทยจาก Google Fonts (ต้องมีลิงก์โหลดในหน้า staff)
+const FONTS = {
+  name: { family: "Chonburi", weight: "400" },
+  sub: { family: "Mitr", weight: "400" },
+  amount: { family: "Chonburi", weight: "400" },
+};
+
+// ตัวอักษรสีทองไล่เฉด มีเงา
+function goldText(ctx, text, x, y, size) {
+  const g = ctx.createLinearGradient(0, y - size / 2, 0, y + size / 2);
+  g.addColorStop(0, "#fff7c2");
+  g.addColorStop(0.45, "#f6d66b");
+  g.addColorStop(1, "#d9a521");
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,.45)";
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+  ctx.fillStyle = g;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
 /**
- * @param {{name:string, subtitle?:string, amount?:number, showAmount?:boolean, photo?:string, settings:object}} d
+ * @param {{name:string, subtitle?:string, amount?:number, showAmount?:boolean, photo?:string, settings:object, fonts?:object}} d
  * @returns {Promise<HTMLCanvasElement>}
  */
 export async function renderThanksCard(d) {
-  await Promise.all([
-    document.fonts.load("500 60px Kanit"),
-    document.fonts.load("400 36px Sarabun"),
-  ]).catch(() => {});
+  const F = { ...FONTS, ...d.fonts };
+  await Promise.all(
+    [...Object.values(F), { family: "Kanit", weight: "500" }].map((f) => document.fonts.load(`${f.weight} 60px "${f.family}"`, "กขค0123"))
+  ).catch(() => {});
 
   const bg = await loadImg(BG);
   const c = document.createElement("canvas");
@@ -64,30 +86,29 @@ export async function renderThanksCard(d) {
     ctx.fillStyle = "#fff8e6";
     ctx.fillRect(PHOTO.x - PHOTO.r, PHOTO.y - PHOTO.r, 2 * PHOTO.r, 2 * PHOTO.r);
     ctx.fillStyle = "#c9a227";
-    ctx.font = "500 64px Kanit";
+    ctx.font = `${F.name.weight} 80px "${F.name.family}"`;
     ctx.fillText("ขอบคุณ", PHOTO.x, PHOTO.y);
   }
   ctx.restore();
 
   // ชื่อ (และบรรทัดรอง) ในแถบสีเขียว
-  ctx.fillStyle = "#fff6c8";
   if (d.subtitle) {
-    fitText(ctx, d.name, NAME_BAR.w, 66);
-    ctx.fillText(d.name, NAME_BAR.x, NAME_BAR.y - 20);
+    const sz = fitText(ctx, d.name, NAME_BAR.w, 70, F.name.weight, `"${F.name.family}"`);
+    goldText(ctx, d.name, NAME_BAR.x, NAME_BAR.y - 18, sz);
     ctx.fillStyle = "#e3f1e8";
-    fitText(ctx, d.subtitle, NAME_BAR.w, 34, "400", "Sarabun");
-    ctx.fillText(d.subtitle, NAME_BAR.x, NAME_BAR.y + 40);
+    fitText(ctx, d.subtitle, NAME_BAR.w, 32, F.sub.weight, `"${F.sub.family}"`);
+    ctx.fillText(d.subtitle, NAME_BAR.x, NAME_BAR.y + 44);
   } else {
-    fitText(ctx, d.name, NAME_BAR.w, 78);
-    ctx.fillText(d.name, NAME_BAR.x, NAME_BAR.y + 4);
+    const sz = fitText(ctx, d.name, NAME_BAR.w, 84, F.name.weight, `"${F.name.family}"`);
+    goldText(ctx, d.name, NAME_BAR.x, NAME_BAR.y, sz);
   }
 
   // ยอดเงิน ในช่องว่างระหว่าง "จำนวนเงิน" กับ "บาท"
   if (d.showAmount !== false && d.amount) {
     const txt = Number(d.amount).toLocaleString("th-TH");
     ctx.fillStyle = "#0b4a2e";
-    fitText(ctx, txt, AMOUNT.w, 60);
-    ctx.fillText(txt, AMOUNT.x, AMOUNT.y + 2);
+    fitText(ctx, txt, AMOUNT.w, 54, F.amount.weight, `"${F.amount.family}"`);
+    ctx.fillText(txt, AMOUNT.x, AMOUNT.y + 4);
   }
 
   return c;
