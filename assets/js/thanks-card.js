@@ -114,14 +114,28 @@ export async function renderThanksCard(d) {
   return c;
 }
 
-export function downloadCanvas(canvas, filename) {
-  canvas.toBlob((blob) => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.append(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  }, "image/jpeg", 0.92);
+export function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob"))), "image/jpeg", 0.92));
+}
+
+// มือถือ: เปิดหน้าต่างแชร์/บันทึกรูปของเครื่อง  คอมพิวเตอร์: ดาวน์โหลดไฟล์
+// ต้องเตรียม blob ไว้ก่อนกดปุ่ม เพราะ iOS ยอมให้ share เฉพาะทันทีหลังการกด
+export async function saveImage(blob, filename) {
+  const file = new File([blob], filename, { type: "image/jpeg" });
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] });
+      return true;
+    } catch (e) {
+      if (e.name === "AbortError") return true;
+    }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  return false;
 }

@@ -1,16 +1,16 @@
 import {
   app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
-} from "./firebase.js?v=18";
+} from "./firebase.js?v=19";
 import {
   initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText,
-} from "./common.js?v=18";
-import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=18";
-import { renderThanksCard, downloadCanvas } from "./thanks-card.js?v=18";
-import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=18";
+} from "./common.js?v=19";
+import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=19";
+import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=19";
+import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=19";
 
 setupBanner();
 // เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)
@@ -404,10 +404,11 @@ async function makeCard(o, photo) {
     <label for="c-name">ชื่อบนป้าย</label><input id="c-name" type="text" value="${escapeHtml(o.fullName)}">
     <label for="c-sub">บรรทัดรอง</label><input id="c-sub" type="text" value="${escapeHtml(donorSubtitle(o))}">
     <div id="c-canvas" style="margin-top:12px"></div>
-    <div class="actions"><button class="btn btn-primary btn-block" id="c-dl">⬇️ ดาวน์โหลดรูปป้าย</button></div>`;
-  let canvas;
+    <p class="hint" style="text-align:center">มือถือ: กดค้างที่รูปแล้วเลือก "บันทึกรูป" ได้เช่นกัน</p>
+    <div class="actions"><button class="btn btn-primary btn-block" id="c-dl">⬇️ บันทึกรูปป้าย</button></div>`;
+  let blob, url;
   const draw = async () => {
-    canvas = await renderThanksCard({
+    const canvas = await renderThanksCard({
       name: $("#c-name").value.trim(),
       subtitle: $("#c-sub").value.trim(),
       amount: o.amount ?? o.total,
@@ -415,10 +416,17 @@ async function makeCard(o, photo) {
       photo,
       settings,
     });
-    $("#c-canvas").replaceChildren(canvas);
+    // แสดงเป็น <img> เพื่อให้มือถือกดค้างบันทึกรูปได้
+    blob = await canvasToBlob(canvas);
+    if (url) URL.revokeObjectURL(url);
+    url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.src = url;
+    img.alt = "ป้ายขอบคุณ";
+    $("#c-canvas").replaceChildren(img);
   };
   ["#c-amount", "#c-name", "#c-sub"].forEach((s) => $(s).addEventListener("change", draw));
-  $("#c-dl").onclick = () => downloadCanvas(canvas, `ขอบคุณ-${o.code}.jpg`);
+  $("#c-dl").onclick = () => blob && saveImage(blob, `ขอบคุณ-${o.code}.jpg`);
   await draw();
   box.scrollIntoView({ behavior: "smooth" });
 }

@@ -1,8 +1,8 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, toast,
-} from "./common.js?v=18";
-import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=18";
+} from "./common.js?v=19";
+import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=19";
 
 // เบราว์เซอร์ในแอป LINE บันทึกรูปลงเครื่องไม่ค่อยได้
 if (/ Line\//.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
