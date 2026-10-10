@@ -2,8 +2,8 @@
 // ตำแหน่งด้านล่างวัดจากภาพพื้นหลังขนาด 2246×1134
 const BG = new URL("../img/thanks-bg.jpg", import.meta.url).href;
 const PHOTO = { x: 608, y: 513, r: 306 };
-const NAME_BAR = { x: 1561, y: 563, w: 840, h: 135 };
-const AMOUNT = { x: 1628, y: 876, w: 172 };
+const NAME_BAR = { x: 1561, y: 500, w: 840, h: 143 };
+const AMOUNT = { x: 1630, y: 790, w: 172 };
 
 function loadImg(src) {
   return new Promise((resolve, reject) => {
