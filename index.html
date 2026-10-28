@@ -24,6 +24,8 @@
   </section>
 
   <main class="container">
+    <div id="goal" class="card goal" hidden></div>
+
     <nav class="menu">
       <a class="menu-item" href="donate.html" id="m-donate">
         <div class="icon">🙏</div>
@@ -71,10 +73,11 @@
   <footer><span data-s="schoolName">โรงเรียนโคกสีวิทยาสรรค์</span></footer>
 
   <script type="module">
-    import { loadSettings, fillEventText, setupBanner, $, $$ } from "./assets/js/common.js?v=21";
+    import { loadSettings, fillEventText, setupBanner, watchDonationGoal, $, $$ } from "./assets/js/common.js?v=21";
     setupBanner();
     const s = await loadSettings();
     fillEventText(s);
+    watchDonationGoal($("#goal"), s);
     if (!s.openShirt) $("#m-shirt").classList.add("closed");
     if (!s.openTicket) $("#m-ticket").classList.add("closed");
     if (!s.openDonate) $("#m-donate").classList.add("closed");

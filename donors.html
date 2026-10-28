@@ -16,6 +16,7 @@
   </div></header>
 
   <main class="container">
+    <div id="goal" class="card goal" hidden></div>
     <div class="card" style="text-align:center">
       <div class="hint">ขออนุโมทนาบุญกับผู้ร่วมทำบุญทุกท่าน</div>
       <div id="count" style="font-family:Kanit;font-size:1.3rem;color:var(--green-dark)">…</div>
@@ -27,9 +28,11 @@
 
   <script type="module">
     import { db, isConfigured, collection, query, orderBy, onSnapshot } from "./assets/js/firebase.js?v=21";
-    import { $, baht, escapeHtml, loadSettings, fillEventText, setupBanner } from "./assets/js/common.js?v=21";
+    import { $, baht, escapeHtml, loadSettings, fillEventText, setupBanner, watchDonationGoal } from "./assets/js/common.js?v=21";
     setupBanner();
-    fillEventText(await loadSettings());
+    const s = await loadSettings();
+    fillEventText(s);
+    watchDonationGoal($("#goal"), s);
     if (isConfigured) {
       onSnapshot(query(collection(db, "publicDonors"), orderBy("createdAt", "desc")), (snap) => {
         const rows = snap.docs.map((d) => d.data());
