@@ -1,16 +1,17 @@
 import {
   app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
-} from "./firebase.js?v=21";
+} from "./firebase.js?v=22";
 import {
   initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText, goalBarHtml,
-} from "./common.js?v=21";
-import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=21";
-import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=21";
-import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=21";
+} from "./common.js?v=22";
+import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=22";
+import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=22";
+import { renderGoalCard } from "./goal-card.js?v=22";
+import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=22";
 
 setupBanner();
 // เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)
@@ -216,7 +217,8 @@ function renderOverview() {
   const dnPending = dn.filter((o) => o.status === "pending").reduce((a, o) => a + donationAmount(o), 0);
   $("#tab-overview").innerHTML = `
     ${settings.donationGoal ? `<div class="card goal">${goalBarHtml(paidDonations().reduce((a, o) => a + donationAmount(o), 0), Number(settings.donationGoal),
-      dnPending ? `รอตรวจสลิปอีก ${baht(dnPending)} บาท` : "")}</div>` : ""}
+      dnPending ? `รอตรวจสลิปอีก ${baht(dnPending)} บาท` : "")}
+      <button class="btn btn-outline btn-sm" id="btn-goal-card" style="margin-top:10px">🖼️ สร้างรูปยอดบริจาค (โพสต์ Facebook)</button></div>` : ""}
     <div class="stats">
       ${stat("ยอดเงินที่ตรวจแล้ว", baht(paidAll), `รอตรวจสอบอีก ${baht(pendingAll)} บาท`, "gold")}
       ${stat("🙏 ร่วมทำบุญ", baht(sum(dn.filter(isPaid))), `${dn.filter(isPaid).length} ราย · รอตรวจ ${baht(sum(dn.filter((o) => o.status === "pending")))}`)}
@@ -256,6 +258,28 @@ function renderOverview() {
       </table>
     </div>`;
 }
+
+// รูปสรุปยอดร่วมทำบุญ สำหรับโพสต์ลงโซเชียล
+$("#tab-overview").addEventListener("click", async (e) => {
+  if (e.target.id !== "btn-goal-card") return;
+  openModal(`<h2>รูปยอดร่วมทำบุญ</h2>
+    <div id="g-canvas"><div class="spinner dark"></div></div>
+    <p class="hint" style="text-align:center">มือถือ: กดค้างที่รูปแล้วเลือก "บันทึกรูป" ได้เช่นกัน · นับเฉพาะยอดที่ตรวจสลิปแล้ว</p>
+    <div class="actions"><button class="btn btn-primary btn-block" id="g-dl">⬇️ บันทึกรูป</button></div>`);
+  const dn = paidDonations();
+  const canvas = await renderGoalCard({
+    raised: dn.reduce((a, o) => a + donationAmount(o), 0),
+    count: dn.length,
+    goal: Number(settings.donationGoal) || 0,
+    settings,
+  });
+  const blob = await canvasToBlob(canvas);
+  const img = new Image();
+  img.src = URL.createObjectURL(blob);
+  img.alt = "รูปยอดร่วมทำบุญ";
+  $("#g-canvas").replaceChildren(img);
+  $("#g-dl").onclick = () => saveImage(blob, `ยอดร่วมทำบุญ-${new Date().toISOString().slice(0, 10)}.jpg`);
+});
 
 function filtered() {
   const q = $("#q").value.trim().toLowerCase();
