@@ -1,5 +1,5 @@
-import { db, isConfigured, doc, getDoc, onSnapshot, writeBatch, serverTimestamp } from "./firebase.js?v=22";
-import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=22";
+import { db, isConfigured, doc, getDoc, onSnapshot, writeBatch, serverTimestamp } from "./firebase.js?v=23";
+import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=23";
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
