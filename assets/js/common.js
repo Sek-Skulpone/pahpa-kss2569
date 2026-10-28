@@ -1,5 +1,5 @@
-import { db, isConfigured, doc, getDoc, writeBatch, serverTimestamp } from "./firebase.js?v=20";
-import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=20";
+import { db, isConfigured, doc, getDoc, onSnapshot, writeBatch, serverTimestamp } from "./firebase.js?v=21";
+import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=21";
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -28,6 +28,27 @@ export async function loadSettings() {
     console.warn("loadSettings", e);
     return { ...DEFAULT_SETTINGS };
   }
+}
+
+// ---- หลอดยอดบริจาคเทียบเป้าหมาย ----
+// ยอดสาธารณะเก็บใน settings/donationProgress { total, count } — หน้าแอดมินเป็นผู้อัปเดต (นับเฉพาะที่ตรวจสลิปแล้ว)
+export function goalBarHtml(raised, goal, note = "") {
+  const pct = goal > 0 ? (raised / goal) * 100 : 0;
+  return `<div class="goal-head">🙏 ยอดร่วมทำบุญ</div>
+    <div class="goal-raised">${baht(raised)} บาท</div>
+    <div class="goal-track"><div class="goal-fill" style="width:${Math.min(pct, 100)}%"></div>
+      <div class="goal-pct">${pct.toLocaleString("th-TH", { maximumFractionDigits: 1 })}%</div></div>
+    <div class="goal-foot"><span>${note}</span><span>เป้าหมาย ${baht(goal)} บาท</span></div>`;
+}
+
+export function watchDonationGoal(el, s) {
+  const goal = Number(s.donationGoal) || 0;
+  if (!isConfigured || !el || !goal) return;
+  onSnapshot(doc(db, "settings", "donationProgress"), (snap) => {
+    const p = snap.exists() ? snap.data() : {};
+    el.innerHTML = goalBarHtml(Number(p.total) || 0, goal, p.count ? `ผู้ร่วมทำบุญ ${Number(p.count).toLocaleString("th-TH")} รายการ` : "");
+    el.hidden = false;
+  }, (e) => console.warn("donationProgress", e));
 }
 
 export function fillEventText(s) {

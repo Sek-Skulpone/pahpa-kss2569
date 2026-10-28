@@ -275,4 +275,12 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24
 .contact-card { font-size: .95rem; text-align: center; }
 .contact-card a { font-weight: 600; margin-left: 4px; }
 .card.flash { animation: flash 2.4s ease; }
+/* หลอดยอดบริจาคเทียบเป้าหมาย */
+.goal { text-align: center; }
+.goal .goal-head { font-family: "Kanit", sans-serif; color: var(--green-dark); font-size: 1.05rem; }
+.goal .goal-raised { font-family: "Kanit", sans-serif; font-size: 1.9rem; font-weight: 600; color: var(--green); line-height: 1.2; }
+.goal .goal-track { position: relative; height: 22px; margin: 10px 0 6px; border-radius: 999px; background: var(--green-soft); overflow: hidden; }
+.goal .goal-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), #f0c24b); transition: width 1s ease; }
+.goal .goal-pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: .85rem; font-weight: 700; color: var(--green-dark); }
+.goal .goal-foot { display: flex; justify-content: space-between; gap: 8px; font-size: .9rem; color: var(--muted); }
 @keyframes flash { 0%, 60% { box-shadow: 0 0 0 3px var(--gold, #d4a017), var(--shadow); } }

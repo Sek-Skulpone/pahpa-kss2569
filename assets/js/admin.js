@@ -1,16 +1,16 @@
 import {
   app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
-} from "./firebase.js?v=20";
+} from "./firebase.js?v=21";
 import {
   initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText,
-} from "./common.js?v=20";
-import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=20";
-import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=20";
-import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=20";
+  $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText, goalBarHtml,
+} from "./common.js?v=21";
+import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=21";
+import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=21";
+import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=21";
 
 setupBanner();
 // เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)
@@ -106,6 +106,7 @@ async function startApp(user) {
       if (!firstLoad && fresh.length) newOrderAlert(fresh);
       firstLoad = false;
       render();
+      syncDonationProgress();
     },
     (e) => {
       console.error(e);
@@ -177,6 +178,20 @@ function render() {
 
 const isPaid = (o) => o.status === "verified" || o.status === "delivered";
 const active = (o) => o.status !== "rejected";
+const donationAmount = (o) => Number(o.amount ?? o.total) || 0;
+const paidDonations = () => orders.filter((o) => o.type === "donation" && isPaid(o));
+
+// อัปเดตยอดบริจาคสาธารณะ (settings/donationProgress) ให้หลอดในหน้าบริจาคตรงกับข้อมูลจริง
+let lastProgress = "";
+function syncDonationProgress() {
+  const dn = paidDonations();
+  const p = { total: dn.reduce((a, o) => a + donationAmount(o), 0), count: dn.length };
+  const key = JSON.stringify(p);
+  if (key === lastProgress) return;
+  lastProgress = key;
+  setDoc(doc(db, "settings", "donationProgress"), { ...p, updatedAt: serverTimestamp() })
+    .catch((e) => { lastProgress = ""; console.warn("donationProgress", e); });
+}
 
 function renderOverview() {
   const by = (t) => orders.filter((o) => o.type === t && active(o));
@@ -198,7 +213,10 @@ function renderOverview() {
   const postWaiting = orders.filter((o) => o.delivery === "post" && o.status === "verified").length;
   const schoolWaiting = orders.filter((o) => o.delivery === "school" && o.status === "verified").length;
 
+  const dnPending = dn.filter((o) => o.status === "pending").reduce((a, o) => a + donationAmount(o), 0);
   $("#tab-overview").innerHTML = `
+    ${settings.donationGoal ? `<div class="card goal">${goalBarHtml(paidDonations().reduce((a, o) => a + donationAmount(o), 0), Number(settings.donationGoal),
+      dnPending ? `รอตรวจสลิปอีก ${baht(dnPending)} บาท` : "")}</div>` : ""}
     <div class="stats">
       ${stat("ยอดเงินที่ตรวจแล้ว", baht(paidAll), `รอตรวจสอบอีก ${baht(pendingAll)} บาท`, "gold")}
       ${stat("🙏 ร่วมทำบุญ", baht(sum(dn.filter(isPaid))), `${dn.filter(isPaid).length} ราย · รอตรวจ ${baht(sum(dn.filter((o) => o.status === "pending")))}`)}
@@ -457,6 +475,7 @@ const SETTING_FIELDS = [
   ["ข้อมูลงาน", [
     ["eventTitle", "ชื่องาน"], ["eventSubtitle", "ชื่องาน (บรรทัดรอง)"], ["eventDate", "วันที่จัดงาน"],
     ["eventPurpose", "วัตถุประสงค์"], ["schoolName", "ชื่อโรงเรียน"],
+    ["donationGoal", "เป้าหมายยอดบริจาค (บาท)", "number"],
   ]],
   ["ราคา (บาท)", [
     ["shirtPrice", "เสื้อ ราคาตัวละ", "number"], ["shirtShipping", "เสื้อ ค่าส่งไปรษณีย์/ออเดอร์", "number"],
