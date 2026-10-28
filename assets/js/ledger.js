@@ -1,7 +1,7 @@
 // บัญชีรายนามผู้ร่วมทำบุญ (สำหรับคัดลอกลงสมุดบัญชี)
-import { db, doc, updateDoc, setDoc, writeBatch, serverTimestamp } from "./firebase.js?v=19";
-import { $, $$, baht, escapeHtml, genCode, toast, STATUS_LABEL } from "./common.js?v=19";
-import { NAME_PREFIXES } from "./config.js?v=19";
+import { db, doc, updateDoc, setDoc, writeBatch, serverTimestamp } from "./firebase.js?v=20";
+import { $, $$, baht, escapeHtml, genCode, toast, STATUS_LABEL } from "./common.js?v=20";
+import { NAME_PREFIXES } from "./config.js?v=20";
 
 const opt = { scope: "paid", notInBook: false, q: "", pay: "" };
 let ctx = null;

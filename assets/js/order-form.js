@@ -1,8 +1,8 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, toast,
-} from "./common.js?v=19";
-import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=19";
+} from "./common.js?v=20";
+import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=20";
 
 // เบราว์เซอร์ในแอป LINE บันทึกรูปลงเครื่องไม่ค่อยได้
 if (/ Line\//.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
@@ -42,7 +42,7 @@ export async function initOrderPage(opts) {
   const qrSrc = PAYMENT_QR[opts.type];
 
   const prefixSel = $("#f-prefix");
-  NAME_PREFIXES.forEach((p) => prefixSel.add(new Option(p, p)));
+  prefixSel?.append(...NAME_PREFIXES.map((p) => new Option(p, p)));
   $("#pay").innerHTML = paymentBlockHtml(qrSrc);
 
   const s = await loadSettings();
@@ -306,7 +306,7 @@ export async function initOrderPage(opts) {
       if (photoData) files.photo = photoData;
       const first = $("#f-first").value.trim();
       const last = $("#f-last").value.trim();
-      const prefix = prefixSel.value;
+      const prefix = prefixSel?.value || ""; // หน้าบริจาคไม่มีช่องคำนำหน้า ผู้บริจาคพิมพ์รวมในชื่อเอง
       const order = {
         code: genCode(opts.prefix),
         type: opts.type,
