@@ -1,7 +1,7 @@
 // บัญชีรายนามผู้ร่วมทำบุญ (สำหรับคัดลอกลงสมุดบัญชี)
-import { db, doc, updateDoc, setDoc, writeBatch, serverTimestamp } from "./firebase.js?v=23";
-import { $, $$, baht, escapeHtml, genCode, toast, STATUS_LABEL } from "./common.js?v=23";
-import { NAME_PREFIXES } from "./config.js?v=23";
+import { db, doc, updateDoc, setDoc, writeBatch, serverTimestamp } from "./firebase.js?v=24";
+import { $, $$, baht, escapeHtml, genCode, toast, STATUS_LABEL } from "./common.js?v=24";
+import { NAME_PREFIXES } from "./config.js?v=24";
 
 const opt = { scope: "paid", notInBook: false, q: "", pay: "" };
 let ctx = null;
@@ -41,10 +41,10 @@ export function bahtText(n) {
 
 // ---------- ข้อมูล ----------
 const fmtDate = (ts) => (ts?.toDate ? ts.toDate().toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" }) : "—");
-const channel = (o) => (o.source === "manual" ? o.payMethod || "เงินสด" : "โอน (ออนไลน์)");
+const channel = (o) => (o.source === "manual" ? o.payMethod || "เงินสด" : o.payMethod === "เงินสด" ? "เงินสด (ที่ รร.)" : "โอน (ออนไลน์)");
 // กลุ่มช่องทางชำระ: เงินสด / เงินโอน / อื่นๆ
 export function payGroup(o) {
-  const m = o.source === "manual" ? o.payMethod || "เงินสด" : "โอนเงิน";
+  const m = o.source === "manual" ? o.payMethod || "เงินสด" : o.payMethod || "โอนเงิน";
   return m === "เงินสด" ? "cash" : m === "โอนเงิน" ? "transfer" : "other";
 }
 export const PAY_GROUP_LABEL = { cash: "💵 เงินสด", transfer: "🏦 เงินโอน", other: "📄 เช็ค / อื่นๆ" };

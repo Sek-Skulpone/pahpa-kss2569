@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#063d27">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=23">
+  <link rel="stylesheet" href="assets/css/style.css?v=24">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
 </head>
 <body>
@@ -61,14 +61,24 @@
 
       <div class="card">
         <h2><span class="step-num">4</span>ชำระเงิน</h2>
-        <div id="pay"></div>
-        <h3>แนบสลิปการโอนเงิน</h3>
-        <div class="upload">
-          <input id="slip-input" type="file" accept="image/*">
-          <div class="ph">📎 แตะเพื่อเลือกรูปสลิป</div>
-          <div id="slip-preview" class="preview"></div>
+        <div class="choice" style="margin-bottom:14px">
+          <label><input type="radio" name="paymethod" value="transfer" checked><div>โอนเงิน / สแกน QR<small>แนบสลิปการโอนเงิน</small></div></label>
+          <label><input type="radio" name="paymethod" value="school"><div>ชำระเงินสดที่ รร. โคกสีวิทยาสรรค์<small>ไม่ต้องแนบสลิป · ชำระตอนมารับเสื้อ</small></div></label>
         </div>
-        <div id="slip-status" class="slip-status"></div>
+        <div id="transfer-box">
+          <div id="pay"></div>
+          <h3>แนบสลิปการโอนเงิน</h3>
+          <div class="upload">
+            <input id="slip-input" type="file" accept="image/*">
+            <div class="ph">📎 แตะเพื่อเลือกรูปสลิป</div>
+            <div id="slip-preview" class="preview"></div>
+          </div>
+          <div id="slip-status" class="slip-status"></div>
+        </div>
+        <div id="school-pay-box" class="qr-box" hidden>
+          <div class="pay-amount">ยอดที่ต้องชำระ <strong class="js-total">0</strong> บาท</div>
+          <p class="hint" style="margin:6px 0 0">กด "ยืนยันสั่งจอง" ได้เลย แล้วนำเงินสดมาชำระที่ รร. โคกสีวิทยาสรรค์<br>แจ้งรหัสรายการกับเจ้าหน้าที่เมื่อมาชำระเงิน/รับเสื้อ</p>
+        </div>
       </div>
       <div class="card contact-card">📞 สอบถามการสั่งเสื้อ: <span data-s="contactShirt"></span> <a data-tel="contactShirtPhone" hidden></a></div>
     </div>
@@ -80,9 +90,9 @@
   </div></div>
 
   <script type="module">
-    import { initOrderPage } from "./assets/js/order-form.js?v=23";
-    import { $, $$, baht } from "./assets/js/common.js?v=23";
-    import { SHIRT_SIZES } from "./assets/js/config.js?v=23";
+    import { initOrderPage } from "./assets/js/order-form.js?v=24";
+    import { $, $$, baht } from "./assets/js/common.js?v=24";
+    import { SHIRT_SIZES } from "./assets/js/config.js?v=24";
 
     const qty = {};
     const setters = {};
@@ -93,6 +103,7 @@
       prefix: "SH",
       openKey: "openShirt",
       hasDelivery: true,
+      payAtSchool: true,
       shippingKey: "shirtShipping",
       successTitle: "สั่งจองเสื้อเรียบร้อย",
       onReady(s, refresh) {

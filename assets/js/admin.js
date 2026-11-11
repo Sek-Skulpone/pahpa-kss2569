@@ -1,17 +1,17 @@
 import {
   app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
-} from "./firebase.js?v=23";
+} from "./firebase.js?v=24";
 import {
   initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText, goalBarHtml,
-} from "./common.js?v=23";
-import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=23";
-import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=23";
-import { renderGoalCard } from "./goal-card.js?v=23";
-import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=23";
+} from "./common.js?v=24";
+import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=24";
+import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=24";
+import { renderGoalCard } from "./goal-card.js?v=24";
+import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=24";
 
 setupBanner();
 // เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)
@@ -306,7 +306,7 @@ function renderList() {
       </div>
       <div class="meta">${escapeHtml(o.code)} · ${fmtTime(o.createdAt)}${o.phone ? " · " + escapeHtml(o.phone) : ""}</div>
       <div class="meta">${escapeHtml(o.type === "donation" ? [o.position, o.workplace].filter(Boolean).join(" · ") : orderSummaryText(o))}</div>
-      <div style="margin-top:4px"><span class="chip ${o.status}">${STATUS_LABEL[o.status]}</span>${o.delivery === "post" ? '<span class="chip post">ไปรษณีย์</span>' : ""}${o.hasPhoto ? '<span class="chip">มีรูป</span>' : ""}${o.hasSlip === false ? '<span class="chip rejected">ไม่แนบสลิป</span>' : ""}${o.type === "donation" && o.allowPublish === false ? '<span class="chip">ไม่ต้องการป้าย</span>' : ""}</div>
+      <div style="margin-top:4px"><span class="chip ${o.status}">${STATUS_LABEL[o.status]}</span>${o.delivery === "post" ? '<span class="chip post">ไปรษณีย์</span>' : ""}${o.hasPhoto ? '<span class="chip">มีรูป</span>' : ""}${o.payMethod === "เงินสด" && o.source !== "manual" ? '<span class="chip">💵 จ่ายที่ รร.</span>' : o.hasSlip === false ? '<span class="chip rejected">ไม่แนบสลิป</span>' : ""}${o.type === "donation" && o.allowPublish === false ? '<span class="chip">ไม่ต้องการป้าย</span>' : ""}</div>
     </div>`).join("") || `<p class="hint">ไม่มีรายการ</p>`;
   $$("#orders .order").forEach((el) => (el.onclick = () => openOrder(el.dataset.id)));
 }
@@ -352,7 +352,9 @@ async function openOrder(id) {
     o.note && ["หมายเหตุ", escapeHtml(o.note)],
     o.type === "donation" && ["แสดงรายนาม", o.showName ? "ยินยอม" : "ไม่ประสงค์ออกนาม"],
     o.type === "donation" && ["ป้ายขอบคุณ", o.allowPublish ? "ต้องการ" : "ไม่ต้องการ"],
-    o.hasSlip === false
+    o.payMethod === "เงินสด" && o.source !== "manual"
+      ? ["ชำระเงิน", '<span class="chip">💵 ชำระเงินสดที่ รร. — รับเงินแล้วค่อยกดยืนยัน</span>']
+      : o.hasSlip === false
       ? ["สลิป", '<span class="chip rejected">ไม่แนบสลิป — ตรวจยอดจากบัญชีธนาคาร</span>']
       : ["เลขอ้างอิงสลิป", o.slipRef ? escapeHtml(o.slipRef) : '<span class="hint">อ่าน QR ไม่ได้ — ตรวจด้วยตา</span>'],
   ].filter(Boolean);

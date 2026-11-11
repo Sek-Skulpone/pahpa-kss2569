@@ -1,8 +1,8 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, toast,
-} from "./common.js?v=23";
-import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=23";
+} from "./common.js?v=24";
+import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=24";
 
 // เบราว์เซอร์ในแอป LINE บันทึกรูปลงเครื่องไม่ค่อยได้
 if (/ Line\//.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
@@ -33,6 +33,7 @@ const store = {
  * opts.successTitle
  * opts.photoInput  ช่องแนบรูปผู้บริจาค (ไม่บังคับ)
  * opts.optionalSlip / opts.optionalName  ไม่บังคับแนบสลิป / กรอกชื่อ (ใช้กับการบริจาค)
+ * opts.payAtSchool ให้เลือก "ชำระเงินสดที่ รร." ได้ (ไม่ต้องแนบสลิป, ต้องรับของที่ รร.)
  */
 export async function initOrderPage(opts) {
   setupBanner();
@@ -60,6 +61,25 @@ export async function initOrderPage(opts) {
     $$("input[name=delivery]").forEach((r) => r.addEventListener("change", () => {
       $("#address-box").hidden = deliveryVal() !== "post";
       refresh();
+    }));
+  }
+
+  // ---- วิธีชำระเงิน ----
+  const payAtSchool = () => !!opts.payAtSchool && $("input[name=paymethod]:checked")?.value === "school";
+  function syncPayMethod() {
+    if (!opts.payAtSchool) return;
+    $("#transfer-box").hidden = payAtSchool();
+    $("#school-pay-box").hidden = !payAtSchool();
+  }
+  if (opts.payAtSchool) {
+    $$("input[name=paymethod]").forEach((r) => r.addEventListener("change", () => {
+      syncPayMethod();
+      if (payAtSchool() && deliveryVal() === "post") {
+        $("input[name=delivery][value=school]").checked = true;
+        $("#address-box").hidden = true;
+        refresh();
+        toast("ชำระที่ รร. — เปลี่ยนเป็นรับเสื้อที่ รร. ให้แล้ว", "ok");
+      }
     }));
   }
 
@@ -135,7 +155,7 @@ export async function initOrderPage(opts) {
   // ---- draft (กันข้อมูลหายตอนสลับไปแอปธนาคาร) ----
   const FIELDS = ["f-prefix", "f-first", "f-last", "f-phone", "f-address", "f-note", "f-position", "f-workplace"];
   function saveDraft() {
-    const d = { fields: {}, delivery: deliveryVal(), state: opts.getState?.() };
+    const d = { fields: {}, delivery: deliveryVal(), payMethod: payAtSchool() ? "school" : "transfer", state: opts.getState?.() };
     FIELDS.forEach((id) => { const el = $("#" + id); if (el) d.fields[id] = el.value; });
     $$("input[type=checkbox][id^=f-]").forEach((el) => (d.fields[el.id] = el.checked));
     store.set(DRAFT_KEY, d);
@@ -153,6 +173,11 @@ export async function initOrderPage(opts) {
       if (r) { r.checked = true; $("#address-box").hidden = d.delivery !== "post"; }
     }
     if (d.state) opts.setState?.(d.state);
+    if (opts.payAtSchool && d.payMethod) {
+      const r = $(`input[name=paymethod][value=${d.payMethod}]`);
+      if (r) r.checked = true;
+    }
+    syncPayMethod();
   }
   restoreDraft();
   refresh();
@@ -263,7 +288,7 @@ export async function initOrderPage(opts) {
 
   function checkReturn() {
     const a = store.get(AWAIT_KEY);
-    if (!a || slipFile || paidNoSlip) return;
+    if (!a || slipFile || paidNoSlip || payAtSchool()) return;
     if (Date.now() - a.at > 2 * 60 * 60 * 1000) return store.del(AWAIT_KEY);
     showReturnModal();
   }
@@ -274,7 +299,7 @@ export async function initOrderPage(opts) {
   // ---- submit ----
   const btn = $("#submit");
   btn.addEventListener("click", () => {
-    if (!slipFile && !paidNoSlip && !validate({ needSlip: false })) {
+    if (!slipFile && !paidNoSlip && !payAtSchool() && !validate({ needSlip: false })) {
       if (opts.optionalSlip) return showReturnModal();
       // ยังไม่แนบสลิป: พาไปส่วนชำระเงิน
       $("#pay").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -302,7 +327,7 @@ export async function initOrderPage(opts) {
     document.body.append(overlay);
     try {
       const files = {};
-      if (slipFile) files.slip = await compressImage(slipFile, { maxDim: 900, maxBytes: 180_000 });
+      if (slipFile && !payAtSchool()) files.slip = await compressImage(slipFile, { maxDim: 900, maxBytes: 180_000 });
       if (photoData) files.photo = photoData;
       const first = $("#f-first").value.trim();
       const last = $("#f-last").value.trim();
@@ -314,7 +339,8 @@ export async function initOrderPage(opts) {
         firstName: first,
         lastName: last,
         fullName: first || last ? `${prefix === "อื่นๆ" ? "" : prefix}${first} ${last}`.trim() : "ผู้ไม่ประสงค์ออกนาม",
-        hasSlip: !!slipFile,
+        hasSlip: !!slipFile && !payAtSchool(),
+        ...(payAtSchool() ? { payMethod: "เงินสด" } : {}),
         phone: $("#f-phone").value.trim(),
         delivery: opts.hasDelivery ? deliveryVal() : null,
         address: opts.hasDelivery && deliveryVal() === "post" ? $("#f-address").value.trim() : "",
@@ -324,13 +350,16 @@ export async function initOrderPage(opts) {
         total: current.total,
         ...opts.extra(s),
       };
-      await submitOrder(order, files, slipInfo);
+      await submitOrder(order, files, payAtSchool() ? null : slipInfo);
       store.del(DRAFT_KEY);
       store.del(AWAIT_KEY);
       store.del(PHOTO_KEY);
       overlay.remove();
       $(".bottom-bar").hidden = true;
-      showSuccess($("main"), { code: order.code, title: opts.successTitle, total: order.total });
+      showSuccess($("main"), {
+        code: order.code, title: opts.successTitle, total: order.total,
+        extraHtml: order.payMethod === "เงินสด" ? `<p class="hint" style="font-size:1rem">💵 กรุณานำเงินสด <strong>${baht(order.total)}</strong> บาท มาชำระที่ รร. โคกสีวิทยาสรรค์<br>และแจ้งรหัสรายการนี้กับเจ้าหน้าที่</p>` : "",
+      });
     } catch (e) {
       console.error(e);
       overlay.remove();
@@ -353,7 +382,8 @@ export async function initOrderPage(opts) {
       if (!deliveryVal()) return "กรุณาเลือกช่องทางการรับ";
       if (deliveryVal() === "post" && $("#f-address").value.trim().length < 15) return "กรุณากรอกที่อยู่สำหรับจัดส่งให้ครบถ้วน";
     }
-    if (needSlip && !slipFile && !opts.optionalSlip) return "กรุณาแนบสลิปการโอนเงิน";
+    if (payAtSchool() && deliveryVal() === "post") return "ชำระเงินที่ รร. ต้องเลือกรับเสื้อที่ รร.";
+    if (needSlip && !slipFile && !opts.optionalSlip && !payAtSchool()) return "กรุณาแนบสลิปการโอนเงิน";
     return "";
   }
 }

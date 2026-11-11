@@ -1,5 +1,5 @@
-import { db, isConfigured, doc, getDoc, onSnapshot, writeBatch, serverTimestamp } from "./firebase.js?v=23";
-import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=23";
+import { db, isConfigured, doc, getDoc, onSnapshot, writeBatch, serverTimestamp } from "./firebase.js?v=24";
+import { DEFAULT_SETTINGS, LINE_NOTIFY_URL, LINE_NOTIFY_KEY } from "./config.js?v=24";
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -216,7 +216,7 @@ export async function notifyLine(o) {
     o.phone ? `โทร: ${o.phone}` : "",
     orderSummaryText(o),
     o.delivery ? `รับ: ${DELIVERY_LABEL[o.delivery]}` : "",
-    `ยอดเงิน: ${baht(o.total)} บาท${o.hasSlip === false ? " (ไม่แนบสลิป)" : ""}`,
+    `ยอดเงิน: ${baht(o.total)} บาท${o.payMethod === "เงินสด" ? " (ชำระเงินสดที่ รร.)" : o.hasSlip === false ? " (ไม่แนบสลิป)" : ""}`,
     `ตรวจสอบ: ${location.origin}${location.pathname.replace(/[^/]*$/, "")}staff-49aacfdc.html`,
   ].filter(Boolean).join("\n");
   await fetch(LINE_NOTIFY_URL, {
