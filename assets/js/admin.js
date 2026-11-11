@@ -1,17 +1,17 @@
 import {
   app, db, isConfigured, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc,
   serverTimestamp,
-} from "./firebase.js?v=24";
+} from "./firebase.js?v=25";
 import {
   initializeAuth, browserLocalPersistence, inMemoryPersistence, browserPopupRedirectResolver, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   $, $$, baht, escapeHtml, loadSettings, setupBanner, toast, TYPE_LABEL, STATUS_LABEL, DELIVERY_LABEL, orderSummaryText, goalBarHtml,
-} from "./common.js?v=24";
-import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=24";
-import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=24";
-import { renderGoalCard } from "./goal-card.js?v=24";
-import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=24";
+} from "./common.js?v=25";
+import { SHIRT_SIZES, DEFAULT_SETTINGS } from "./config.js?v=25";
+import { renderThanksCard, canvasToBlob, saveImage } from "./thanks-card.js?v=25";
+import { renderGoalCard } from "./goal-card.js?v=25";
+import { renderLedger, payGroup, PAY_GROUP_LABEL } from "./ledger.js?v=25";
 
 setupBanner();
 // เก็บสถานะเข้าระบบใน localStorage (ไม่ใช้ IndexedDB ที่อาจค้างในบางเบราว์เซอร์)

@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#063d27">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=24">
+  <link rel="stylesheet" href="assets/css/style.css?v=25">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
 </head>
 <body>
@@ -78,14 +78,24 @@
 
       <div class="card">
         <h2><span class="step-num">4</span>ชำระเงิน</h2>
-        <div id="pay"></div>
-        <h3>แนบสลิปการโอนเงิน</h3>
-        <div class="upload">
-          <input id="slip-input" type="file" accept="image/*">
-          <div class="ph">📎 แตะเพื่อเลือกรูปสลิป</div>
-          <div id="slip-preview" class="preview"></div>
+        <div class="choice" style="margin-bottom:14px">
+          <label><input type="radio" name="paymethod" value="transfer" checked><div>โอนเงิน / สแกน QR<small>แนบสลิปการโอนเงิน</small></div></label>
+          <label><input type="radio" name="paymethod" value="school"><div>ชำระเงินสดที่ รร. โคกสีวิทยาสรรค์<small>ไม่ต้องแนบสลิป · ชำระตอนมารับบัตร</small></div></label>
         </div>
-        <div id="slip-status" class="slip-status"></div>
+        <div id="transfer-box">
+          <div id="pay"></div>
+          <h3>แนบสลิปการโอนเงิน</h3>
+          <div class="upload">
+            <input id="slip-input" type="file" accept="image/*">
+            <div class="ph">📎 แตะเพื่อเลือกรูปสลิป</div>
+            <div id="slip-preview" class="preview"></div>
+          </div>
+          <div id="slip-status" class="slip-status"></div>
+        </div>
+        <div id="school-pay-box" class="qr-box" hidden>
+          <div class="pay-amount">ยอดที่ต้องชำระ <strong class="js-total">0</strong> บาท</div>
+          <p class="hint" style="margin:6px 0 0">กด "ยืนยันการจอง" ได้เลย แล้วนำเงินสดมาชำระที่ รร. โคกสีวิทยาสรรค์<br>แจ้งรหัสรายการกับเจ้าหน้าที่เมื่อมาชำระเงิน/รับบัตร</p>
+        </div>
       </div>
       <div class="card contact-card">📞 สอบถามการจองบัตร: <span data-s="contactTicket"></span> <a data-tel="contactTicketPhone" hidden></a></div>
     </div>
@@ -97,8 +107,8 @@
   </div></div>
 
   <script type="module">
-    import { initOrderPage } from "./assets/js/order-form.js?v=24";
-    import { $, baht } from "./assets/js/common.js?v=24";
+    import { initOrderPage } from "./assets/js/order-form.js?v=25";
+    import { $, baht } from "./assets/js/common.js?v=25";
 
     let singles = 0, books = 0;
     const setters = {};
@@ -108,6 +118,7 @@
       prefix: "TK",
       openKey: "openTicket",
       hasDelivery: true,
+      payAtSchool: true,
       shippingKey: "ticketShipping",
       successTitle: "จองบัตรรำวงเรียบร้อย",
       onReady(s, refresh) {

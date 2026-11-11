@@ -1,8 +1,8 @@
 import {
   $, $$, baht, escapeHtml, loadSettings, fillEventText, setupBanner, compressImage, readSlipQR,
   genCode, submitOrder, DuplicateSlipError, paymentBlockHtml, showSuccess, toast,
-} from "./common.js?v=24";
-import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=24";
+} from "./common.js?v=25";
+import { NAME_PREFIXES, PAYMENT_QR } from "./config.js?v=25";
 
 // เบราว์เซอร์ในแอป LINE บันทึกรูปลงเครื่องไม่ค่อยได้
 if (/ Line\//.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
@@ -78,7 +78,7 @@ export async function initOrderPage(opts) {
         $("input[name=delivery][value=school]").checked = true;
         $("#address-box").hidden = true;
         refresh();
-        toast("ชำระที่ รร. — เปลี่ยนเป็นรับเสื้อที่ รร. ให้แล้ว", "ok");
+        toast("ชำระที่ รร. — เปลี่ยนเป็นรับที่ รร. ให้แล้ว", "ok");
       }
     }));
   }
@@ -382,7 +382,7 @@ export async function initOrderPage(opts) {
       if (!deliveryVal()) return "กรุณาเลือกช่องทางการรับ";
       if (deliveryVal() === "post" && $("#f-address").value.trim().length < 15) return "กรุณากรอกที่อยู่สำหรับจัดส่งให้ครบถ้วน";
     }
-    if (payAtSchool() && deliveryVal() === "post") return "ชำระเงินที่ รร. ต้องเลือกรับเสื้อที่ รร.";
+    if (payAtSchool() && deliveryVal() === "post") return "ชำระเงินที่ รร. ต้องเลือกรับที่ รร.";
     if (needSlip && !slipFile && !opts.optionalSlip && !payAtSchool()) return "กรุณาแนบสลิปการโอนเงิน";
     return "";
   }
