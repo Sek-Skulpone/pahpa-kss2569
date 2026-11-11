@@ -94,6 +94,43 @@
     .pay-split { display: grid; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
     .pay-split div { display: flex; justify-content: space-between; }
     .pay-split strong { font: 500 1.1rem Kanit; color: var(--green-dark); }
+
+    /* ===== โหมดกะทัดรัด: ตัวเล็กลง ระยะห่างน้อยลง เห็นข้อมูลได้มากขึ้น ===== */
+    html { font-size: 13.5px; }
+    body { font-size: 14px; line-height: 1.4; }
+    .wide { max-width: 1600px; }
+    .topbar .container { min-height: 44px; }
+    .topbar .back { font-size: 1.2rem; }
+    .tabs { top: 44px; padding: 6px 12px; gap: 4px; }
+    .tabs button { font-size: .9rem; padding: 5px 11px; }
+    .card { padding: 12px 14px; margin: 10px 0; border-radius: 12px; }
+    h2 { font-size: 1.1rem; margin-bottom: .5rem; }
+    h3 { margin: .7rem 0 .35rem; }
+    .stats { gap: 8px; margin: 10px 0; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .stat { padding: 8px 10px; border-radius: 10px; border-top-width: 3px; }
+    .stat .v { font-size: 1.3rem; }
+    .tbl { font-size: .92rem; }
+    .tbl th, .tbl td { padding: 4px 6px; }
+    .toolbar { margin: 10px 0 8px; gap: 6px; }
+    .toolbar input[type=search], .toolbar select { padding: 6px 10px; }
+    .orders { gap: 6px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    @media (min-width: 900px) { .orders { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); } }
+    .order { padding: 7px 10px; border-radius: 10px; border-left-width: 4px; }
+    .order .amt { font-size: 1.05rem; }
+    .chip { font-size: .75rem; padding: 1px 7px; }
+    input[type=text], input[type=tel], input[type=number], input[type=email], input[type=password], select, textarea {
+      padding: 7px 10px; border-radius: 8px;
+    }
+    .btn { padding: 8px 16px; border-radius: 9px; }
+    .btn-sm { padding: 5px 10px; font-size: .85rem; }
+    .kv { grid-template-columns: 110px 1fr; gap: 2px 10px; }
+    .sheet { padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); }
+    .ledger { font-size: .9rem; }
+    .ledger th { padding: 6px 6px; }
+    .ledger td { padding: 4px 6px; }
+    .ledger input.inbook { width: 18px; height: 18px; }
+    .ledger-total strong { font-size: 1.3rem; }
+    .goal .goal-raised { font-size: 1.5rem; }
   </style>
 </head>
 <body>
